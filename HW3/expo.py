@@ -22,6 +22,4 @@ def expo(m, d, n):
             value = value * m
             value = value % n
 
-        print('value:', value, 'for', bin_val[2:bit_index + 1])
-
     return value

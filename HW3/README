@@ -1,0 +1,4 @@
+TO RUN EACH OF THESE PROGRAMS: python3 <filename>
+
+For each of the programs they take in g and p as arguements to the program.
+For the messages, each of the messages are limited to a 1024 size.
