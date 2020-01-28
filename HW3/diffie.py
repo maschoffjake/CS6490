@@ -9,11 +9,17 @@
 from expo import expo
 
 def main():
-    m = input('m: ')
-    d = input('d: ')
-    n = input('n: ')
+    print('ENTER ALL VALUES AS INTEGERS')
+    m = int(input('m: '))
+    d = int(input('d: '))
+    n = int(input('n: '))
 
     exponent_value = expo(m, d, n)
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
