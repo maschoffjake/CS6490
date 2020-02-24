@@ -21,7 +21,6 @@ def handle_auth(conn, address, cbc):
     # Send back a random challenge... 64-bit challenges!
     rnd = Random.new()
     nb = rnd.read(8)
-    # nb = b'\x00\xa5\xf6\xfe4\xc5\r\xe5'
     if cbc:
         # CBC requires an IV (intialization vector)
         cipher = DES3.new(kb, DES3.MODE_CBC, iv)
@@ -30,6 +29,7 @@ def handle_auth(conn, address, cbc):
 
     msg = cipher.encrypt(nb)
     conn.sendall(msg)
+    print('Bob sent to Alice:', msg)
 
 # Function used to start the KDC server
 # Once a connection is made, it creates a new thread
