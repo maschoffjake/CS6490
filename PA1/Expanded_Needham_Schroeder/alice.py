@@ -80,9 +80,14 @@ def main():
     data['encrypted_n2'] = int.from_bytes(encrypted_n2, byteorder=sys.byteorder)
     send_json = json.dumps(data)
     print('STEP 5:')
+    print('Created N2 nonce:', int.from_bytes(n2, byteorder=sys.byteorder))
     print('Sending to Bob:', send_json)
     print('\n')
     s_bob.sendall(send_json.encode('utf-8'))
+
+    # STEP 6
+    data = s_bob.recv(MESSAGE_SIZE)
+    print('Received encrypted data from Bob:', recv)
 
 
 if __name__ == "__main__":

@@ -62,13 +62,13 @@ def handle_kdc(conn, address, ecb=False):
     # Pad the string in case it isn't 8-bytes... Just pad with '.  values and remove 
     string_to_pad = json.dumps(ticket)
     while (len(string_to_pad) % 8 != 0):
-        string_to_pad += ' '
+        string_to_pad += '0'
     # Check to see if we are encrypting with Alice's key (1) of Bob's key (2)
     if requesting_val == 1:
         encrypted_ticet = cipher_alice.encrypt(string_to_pad)
     else:
         encrypted_ticet = cipher_bob.encrypt(string_to_pad)
-    data_to_send['ticket'] = str(encrypted_ticet)
+    data_to_send['ticket'] = base64.encodebytes(encrypted_ticet).decode('ascii')
 
     # Send the data back to requester
     json_to_send = json.dumps(data_to_send)
@@ -81,7 +81,7 @@ def handle_kdc(conn, address, ecb=False):
     print('STEP 4:')
     print('Created ticket:', string_to_pad)
     print('Encrypted ticket:', encrypted_ticet)
-    print(len(encrypted_ticet))
+    print('Encoded ticket:', data_to_send['ticket'])
     print('KDC sending to', clients[requester_val], ':', json_to_send)
     print('Ecnrypted:', val_sending)
     print('\n')
