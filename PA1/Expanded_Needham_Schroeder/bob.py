@@ -6,6 +6,7 @@ import socket
 import sys
 import threading
 import os
+import json
 from Crypto.Cipher import DES3
 from Crypto import Random
 
@@ -18,6 +19,10 @@ iv = b'\x81\xde\xa6\xf3u\x9d\x11\xdd'
 MESSAGE_SIZE = 1024
 
 def handle_auth(conn, address, cbc):
+    recv = conn.recv(MESSAGE_SIZE)
+    print('STEP 1')
+    print('Received from Alice:', recv)
+    print('\n')
     # Send back a random challenge... 64-bit challenges!
     rnd = Random.new()
     nb = rnd.read(8)
@@ -29,7 +34,21 @@ def handle_auth(conn, address, cbc):
 
     msg = cipher.encrypt(nb)
     conn.sendall(msg)
+    print('STEP 2')
     print('Bob sent to Alice:', msg)
+    print('\n')
+
+    print('STEP 5')
+    recv = conn.recv(MESSAGE_SIZE)
+    json_data = json.loads(recv.decode('utf-8'))
+    ticket_encrypted = json_data['ticket']
+    nonce = json_data['encrypted_n2']
+    print('Received from Alice:', json_data)
+    print(len(json_data))
+    print('Encrypted ticket:', ticket_encrypted)
+    print(len(ticket_encrypted))
+    ticket_decrypted = cipher.decrypt(ticket_encrypted)
+
 
 # Function used to start the KDC server
 # Once a connection is made, it creates a new thread

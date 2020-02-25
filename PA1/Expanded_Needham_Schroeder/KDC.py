@@ -3,6 +3,7 @@ import json
 import socket
 import threading
 import sys
+import base64
 from Crypto.Cipher import DES3
 
 HOST = 'localhost'
@@ -33,7 +34,9 @@ def handle_kdc(conn, address, ecb=False):
     data = json.loads(json_str)
     requester_val = data['requester']
     requesting_val = data['requesting']
+    print('STEP 3:')
     print('Received from', clients[requester_val], ':', data)
+    print('\n')
 
     # Create the appropiate cipher to encrypt and decrypt
     # Requesting val of 2 means 
@@ -48,31 +51,41 @@ def handle_kdc(conn, address, ecb=False):
     data_to_send = {}
     data_to_send['nonce'] = data['nonce']
     data_to_send['name'] = clients[requesting_val]
-    data_to_send['kab'] = int.from_bytes(kab, byteorder=sys.byteorder)
+    data_to_send['kab'] = kab.decode('utf-8')
 
     # Create ticket
     ticket = {}
-    ticket['kab'] = int.from_bytes(kab, byteorder=sys.byteorder)
+    ticket['kab'] = kab.decode('utf-8')
     ticket['name'] = requester_val
     ticket['nb'] = data['encrypted_nonce']
 
-    # Pad the string in case it isn't 8-bytes... Just pad with '.' values and remove 
+    # Pad the string in case it isn't 8-bytes... Just pad with '.  values and remove 
     string_to_pad = json.dumps(ticket)
     while (len(string_to_pad) % 8 != 0):
         string_to_pad += ' '
     # Check to see if we are encrypting with Alice's key (1) of Bob's key (2)
     if requesting_val == 1:
-        encrypted_ticet = cipher_alice.encrypt(json.dumps(string_to_pad))
+        encrypted_ticet = cipher_alice.encrypt(string_to_pad)
     else:
-        encrypted_ticet = cipher_bob.encrypt(json.dumps(string_to_pad))
-    data_to_send['ticket'] = int.from_bytes(encrypted_ticet, byteorder=sys.byteorder)
+        encrypted_ticet = cipher_bob.encrypt(string_to_pad)
+    data_to_send['ticket'] = str(encrypted_ticet)
 
     # Send the data back to requester
-    json_to_send = json.dumps(data_to_send).encode('utf-8')
+    json_to_send = json.dumps(data_to_send)
+    # Pad the string in case it isn't 8-bytes... Just pad with ' ' values and remove 
+    while (len(json_to_send) % 8 != 0):
+        json_to_send += ' '
+    json_to_send = json_to_send.encode('utf-8')
+    
+    val_sending = cipher_alice.encrypt(json_to_send)
+    print('STEP 4:')
+    print('Created ticket:', string_to_pad)
+    print('Encrypted ticket:', encrypted_ticet)
+    print(len(encrypted_ticet))
     print('KDC sending to', clients[requester_val], ':', json_to_send)
-    print('Ecnrypted:', cipher_alice.encrypt(json_to_send))
-    print(len(cipher_alice.encrypt(json_to_send)))
-    conn.sendall(cipher_alice.encrypt(json_to_send))
+    print('Ecnrypted:', val_sending)
+    print('\n')
+    conn.sendall(val_sending)
 
 # Function used to start the KDC server
 # Once a connection is made, it creates a new thread
