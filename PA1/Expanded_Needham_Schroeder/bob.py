@@ -20,10 +20,14 @@ iv = b'\x81\xde\xa6\xf3u\x9d\x11\xdd'
 MESSAGE_SIZE = 1024
 
 def handle_auth(conn, address, cbc):
+
+    # STEP 1
     recv = conn.recv(MESSAGE_SIZE)
     print('STEP 1')
     print('Received from Alice:', recv)
     print('\n')
+
+    # STEP 2
     # Send back a random challenge... 64-bit challenges!
     rnd = Random.new()
     nb = rnd.read(8)
@@ -42,6 +46,8 @@ def handle_auth(conn, address, cbc):
     print('Encrypted Bob sent to Alice:', msg)
     print('\n')
 
+
+    # STEP 5
     print('STEP 5')
     recv = conn.recv(MESSAGE_SIZE)
     json_data = json.loads(recv.decode('utf-8'))

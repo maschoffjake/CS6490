@@ -72,7 +72,13 @@ def main():
     data_from_kdc = s_kdc.recv(MESSAGE_SIZE)
     print('STEP 4:')
     print('Encrypted text received from KDC:', data_from_kdc)
-    cipher_alice = DES3.new(ka, DES3.MODE_CBC, iv)
+
+    # Create the correct cipher
+    if cbc:
+        cipher_alice = DES3.new(ka, DES3.MODE_CBC, iv)
+    else:
+        cipher_alice = DES3.new(ka, DES3.MODE_ECB)
+    
     decrypted_text = cipher_alice.decrypt(data_from_kdc)
     json_data = json.loads(decrypted_text.rstrip())
     print('Decrypted data received from KDC:', json_data)

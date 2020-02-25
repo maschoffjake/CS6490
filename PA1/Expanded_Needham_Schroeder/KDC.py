@@ -29,6 +29,7 @@ clients = {
 # Used to handle new key combinations
 def handle_kdc(conn, address, ecb=False):
 
+    #STEP 3
     # Just received JSON object, so deserialize it
     json_str = conn.recv(MESSAGE_SIZE)
     data = json.loads(json_str)
@@ -38,6 +39,8 @@ def handle_kdc(conn, address, ecb=False):
     print('Received from', clients[requester_val], ':', data)
     print('\n')
 
+
+    # STEP 4
     # Create the appropiate cipher to encrypt and decrypt
     # Requesting val of 2 means 
     if ecb:
