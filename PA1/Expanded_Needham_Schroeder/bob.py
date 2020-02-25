@@ -52,7 +52,7 @@ def handle_auth(conn, address, cbc):
     ticket_decrypted = cipher_2.decrypt(ticket_decoded).decode().rstrip('0')
     json_data = json.loads(ticket_decrypted)
     print('Decrpyted ticket:', json_data)
-    kab = json_data['kab'].encode('utf-8')
+    kab = base64.decodebytes(json_data['kab'].encode('ascii'))
 
     # Check to make sure the nb received is still the one that was originally sent out
     encrypted_nb_received = json_data['nb'].to_bytes(8, byteorder=sys.byteorder)
@@ -71,6 +71,8 @@ def handle_auth(conn, address, cbc):
         exit()
     print('\n')
 
+
+    # STEP 6
     print('STEP 6:')
      # Decrypt the nonce using the key now
     if cbc:
@@ -89,6 +91,9 @@ def handle_auth(conn, address, cbc):
     data['dec_n2'] = decrypted_nonce_2_alpha
     data['n3'] = n3
     data_to_send = json.dumps(data)
+    # Make sure it is 8-byte aligned
+    while (len(data_to_send) % 8 != 0):
+        data_to_send += '0'
     if cbc:
         # CBC requires an IV (intialization vector)
         cipher = DES3.new(kab, DES3.MODE_CBC, iv)
@@ -97,7 +102,21 @@ def handle_auth(conn, address, cbc):
     encrypted_data_to_send = cipher.encrypt(data_to_send)
     print('Sending encrypted data to Alice:', encrypted_data_to_send)
     conn.sendall(encrypted_data_to_send)
+    print('\n')
 
+    # STEP 7
+    print('STEP 7:')
+    msg = conn.recv(MESSAGE_SIZE)
+    print('Received from Alice:', msg)
+    decrypted_msg = cipher.decrypt(msg).decode().rstrip('0')
+    print('Decrypted message:', decrypted_msg)
+    json_data = json.loads(decrypted_msg)
+    n3_dec = json_data['dec_n3']
+    if (n3_dec != n3 - 1):
+        print('Received back wrong N3. Tampered with. Exiting')
+        exit()
+    print('Received correct N3!')
+    print('DONE. Using shared key with Alice:', kab)
 
 # Function used to start the KDC server
 # Once a connection is made, it creates a new thread

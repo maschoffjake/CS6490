@@ -5,6 +5,7 @@ import threading
 import sys
 import base64
 from Crypto.Cipher import DES3
+from Crypto import Random
 
 HOST = 'localhost'
 PORT = 5000
@@ -15,7 +16,6 @@ SIZE_OF_KEYS = 16   # In bytes
 
 ka = b'6CCD4EE1B2B37A8C'
 kb = b'DC8FA9EE9BA7FTTA'
-kab = b'1A7852E45997CNCA'
 iv = b'\x81\xde\xa6\xf3u\x9d\x11\xdd'
 
 
@@ -47,15 +47,19 @@ def handle_kdc(conn, address, ecb=False):
         cipher_alice = DES3.new(ka, DES3.MODE_CBC, iv)
         cipher_bob = DES3.new(kb, DES3.MODE_CBC, iv)
 
+    # Create KAB for this session of communication
+    rnd = Random.new()
+    kab = rnd.read(16)
+
     # Now send back the nonce, the name val, the actual key value, and ticket for respective server
     data_to_send = {}
     data_to_send['nonce'] = data['nonce']
     data_to_send['name'] = clients[requesting_val]
-    data_to_send['kab'] = kab.decode('utf-8')
+    data_to_send['kab'] = base64.encodebytes(kab).decode('ascii')
 
-    # Create ticket
+    # Create ticket 
     ticket = {}
-    ticket['kab'] = kab.decode('utf-8')
+    ticket['kab'] = base64.encodebytes(kab).decode('ascii')
     ticket['name'] = requester_val
     ticket['nb'] = data['encrypted_nonce']
 
