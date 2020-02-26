@@ -1,5 +1,5 @@
 #
-# Bob node used in the Expanded  Needham 
+# Bob node used in the Needham-Schroeder protocol
 #
 import argparse
 import socket

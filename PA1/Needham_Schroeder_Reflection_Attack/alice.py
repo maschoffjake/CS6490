@@ -1,5 +1,5 @@
 #
-# Create the Alice client that is used in the extended needham-schroeder protocol
+# Create the Alice client that is used in the Needham-Schroeder protocol
 #
 
 import socket

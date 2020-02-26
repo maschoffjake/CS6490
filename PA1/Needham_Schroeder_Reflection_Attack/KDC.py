@@ -1,3 +1,7 @@
+#
+# Create the KDC node used in the Needham-Schroeder protocol
+#
+
 import argparse
 import json
 import socket

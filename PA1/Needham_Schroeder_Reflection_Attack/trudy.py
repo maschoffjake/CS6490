@@ -1,9 +1,8 @@
 #
 # Create the Trudy client that is used to perform a reflection attack
+#
 
 import socket
-import sys
-from Crypto import Random
 from Crypto.Cipher import DES3
 import base64
 
@@ -53,7 +52,7 @@ def main():
     # Take out Kab {N4 - 1} and close this connection
     n4_dec = recv[0:8]
 
-    # In the first socket, send back this value!
+    # In the first socket, send back this value! Correctly authenticated as Alice now...
     s_bob.sendall(n4_dec) 
 
 if __name__ == "__main__":
