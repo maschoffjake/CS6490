@@ -29,18 +29,18 @@ clients = {
 # Used to handle new key combinations
 def handle_kdc(conn, address, ecb=False):
 
-    #STEP 3
+    #STEP 2
     # Just received JSON object, so deserialize it
     json_str = conn.recv(MESSAGE_SIZE)
     data = json.loads(json_str)
     requester_val = data['requester']
     requesting_val = data['requesting']
-    print('STEP 3:')
+    print('STEP 2:')
     print('Received from', clients[requester_val], ':', data)
     print('\n')
 
 
-    # STEP 4
+    # STEP 3
     # Create the appropiate cipher to encrypt and decrypt
     # Requesting val of 2 means 
     if ecb:
@@ -64,7 +64,6 @@ def handle_kdc(conn, address, ecb=False):
     ticket = {}
     ticket['kab'] = base64.encodebytes(kab).decode('ascii')
     ticket['name'] = requester_val
-    ticket['nb'] = data['encrypted_nonce']
 
     # Pad the string in case it isn't 8-bytes... Just pad with '.  values and remove 
     string_to_pad = json.dumps(ticket)
@@ -85,7 +84,7 @@ def handle_kdc(conn, address, ecb=False):
     json_to_send = json_to_send.encode('utf-8')
     
     val_sending = cipher_alice.encrypt(json_to_send)
-    print('STEP 4:')
+    print('STEP 3:')
     print('Created ticket:', string_to_pad)
     print('Encrypted ticket:', encrypted_ticet)
     print('Encoded ticket:', data_to_send['ticket'])

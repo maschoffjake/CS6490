@@ -34,25 +34,11 @@ def main():
     cbc = not args.ecb
 
     # STEP 1
-    # First send to Bob a 1, tell him that Alice wants to communicate with them
-    msg = bytes([1])
     s_bob = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s_bob.connect((HOST, PORT_BOB))
-    s_bob.send(msg)
-    print('STEP 1:')
-    print('Alice sent to Bob:', msg)
-    print('\n')
-
-    # STEP 2
-    # Receive the nonce encrypted by Bob, and send it to the KDC
-    encrypt_nonce = s_bob.recv(MESSAGE_SIZE)
-    print('STEP 2:')
-    print('Alice received from Bob:', encrypt_nonce)
-    print('\n')
     s_kdc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s_kdc.connect((HOST, PORT_KDC))
-    
-    #STEP 3
+
     # Create a nonce to send along with this message (64-bits)
     rnd = Random.new()
     n1 = int.from_bytes(rnd.read(8), byteorder=sys.byteorder)   # Need to convert to ints for bytes... otherwise JSON can't serialize
@@ -60,17 +46,16 @@ def main():
     data['nonce'] = n1
     data['requester'] = 1   # Requester is 1, since it is Alice
     data['requesting'] = 2  # Requesting is 2, since Alice is requesting Bob (2)
-    data['encrypted_nonce'] = int.from_bytes(encrypt_nonce, byteorder=sys.byteorder)
     json_data = json.dumps(data)
-    print('STEP 3:')
+    print('STEP 1:')
     print('Sending to KDC:', json_data)
     print('\n')
     s_kdc.sendall(json_data.encode('utf-8'))
 
-    # STEP 4
+    # STEP 2
     # Receive value from KDC
     data_from_kdc = s_kdc.recv(MESSAGE_SIZE)
-    print('STEP 4:')
+    print('STEP 2:')
     print('Encrypted text received from KDC:', data_from_kdc)
 
     # Create the correct cipher
@@ -80,7 +65,7 @@ def main():
         cipher_alice = DES3.new(ka, DES3.MODE_ECB)
     
     decrypted_text = cipher_alice.decrypt(data_from_kdc)
-    json_data = json.loads(decrypted_text.rstrip())
+    json_data = json.loads(decrypted_text.rstrip('0'))
     print('Decrypted data received from KDC:', json_data)
     if n1 == json_data['nonce']:
         print('Received correct nonce!')
@@ -89,24 +74,27 @@ def main():
         exit()
     print('\n')
 
-    # STEP 5
+    # STEP 3
     data = {}
     data['ticket'] = json_data['ticket']
     # Create a new nonce, encrypt it using kab
     n2 = rnd.read(8)
     kab = base64.decodebytes(json_data['kab'].encode('ascii'))
-    kab_cipher = DES3.new(kab, DES3.MODE_CBC, iv)
+    if cbc:
+        kab_cipher = DES3.new(kab, DES3.MODE_CBC, iv)
+    else:
+        kab_cipher = DES3.new(kab, DES3.MODE_ECB)
     encrypted_n2 = kab_cipher.encrypt(n2)
     data['encrypted_n2'] = int.from_bytes(encrypted_n2, byteorder=sys.byteorder)
     send_json = json.dumps(data)
-    print('STEP 5:')
+    print('STEP 3:')
     print('Created N2 nonce:', int.from_bytes(n2, byteorder=sys.byteorder))
     print('Sending to Bob:', send_json)
     print('\n')
     s_bob.sendall(send_json.encode('utf-8'))
 
-    # STEP 6
-    print('STEP 6:')
+    # STEP 4
+    print('STEP 4:')
     data = s_bob.recv(MESSAGE_SIZE)
     print('Received encrypted data from Bob:', data)
     # Decrypt the data
@@ -127,8 +115,8 @@ def main():
         exit()
 
 
-    # STEP 7
-    print('STEP 7:')
+    # STEP 5
+    print('STEP 5:')
     n3_alpha = json_data['n3'] - 1
     print('Sending back N3 - 1:', n3_alpha)
     data = {}
