@@ -30,21 +30,24 @@ def handle_auth(conn, address, cbc):
 
 
     # STEP 3
+    # NO LONGER USING JSON! Can't use with reflection attack
     print('STEP 3:')
     recv = conn.recv(MESSAGE_SIZE)
-    json_data = json.loads(recv.decode('utf-8'))
-    ticket_encrypted = json_data['ticket']
-    nonce_n2 = json_data['encrypted_n2'].to_bytes(8, byteorder=sys.byteorder)
-    ticket_decoded = base64.decodebytes(ticket_encrypted.encode('ascii'))
-    print('Received from Alice:', json_data)
-    ticket_decrypted = cipher.decrypt(ticket_decoded).decode().rstrip('0')
-    json_data = json.loads(ticket_decrypted)
-    print('Decrpyted ticket:', json_data)
-    kab = base64.decodebytes(json_data['kab'].encode('ascii'))
+    print('Received from Alice:', recv)
+    length_of_packet_ticket = len(recv) - 8 # Skip 8 bytes for the nonce
+    ticket_encrypted = recv[0:length_of_packet_ticket]
+    ticket_decoded = base64.decodebytes(ticket_encrypted)
+    nonce_n2 = recv[length_of_packet_ticket:]
+    print('Encrypted ticket received:', ticket_encrypted)
+    print('Encrypted nonce N2 received:', nonce_n2)
+    ticket_decrypted = json.loads(cipher.decrypt(ticket_decoded).decode().rstrip('0'))
+    print('Decrpyted ticket:', ticket_decrypted)
+    kab = base64.decodebytes(ticket_decrypted['kab'].encode('ascii'))
     print('\n')
 
 
     # STEP 4
+    # NO LONGER USING JSON! Can't use with reflection attack
     print('STEP 4:')
      # Decrypt the nonce using the key now
     if cbc:
@@ -55,22 +58,17 @@ def handle_auth(conn, address, cbc):
     print('N2 encrypted:', nonce_n2)
     decrypted_nonce_2 = int.from_bytes(cipher_3.decrypt(nonce_n2), byteorder=sys.byteorder)
     print('N2 decrypted:', decrypted_nonce_2)
-    decrypted_nonce_2_alpha = decrypted_nonce_2 - 1
+    decrypted_nonce_2_alpha = (decrypted_nonce_2 - 1).to_bytes(8, byteorder=sys.byteorder)
     print('N2 - 1:', decrypted_nonce_2_alpha)
-    n3 = int.from_bytes(rnd.read(8), byteorder=sys.byteorder)
+    n3 = rnd.read(8)
     print('Created N3:', n3)
-    data = {}
-    data['dec_n2'] = decrypted_nonce_2_alpha
-    data['n3'] = n3
-    data_to_send = json.dumps(data)
-    # Make sure it is 8-byte aligned
-    while (len(data_to_send) % 8 != 0):
-        data_to_send += '0'
+    data_to_send = b''.join([decrypted_nonce_2_alpha, n3])
     if cbc:
         # CBC requires an IV (intialization vector)
         cipher = DES3.new(kab, DES3.MODE_CBC, iv)
     else:
         cipher = DES3.new(kab, DES3.MODE_ECB)
+    print('Decrypted values going to send:', data_to_send)
     encrypted_data_to_send = cipher.encrypt(data_to_send)
     print('Sending encrypted data to Alice:', encrypted_data_to_send)
     conn.sendall(encrypted_data_to_send)
@@ -80,10 +78,12 @@ def handle_auth(conn, address, cbc):
     print('STEP 5:')
     msg = conn.recv(MESSAGE_SIZE)
     print('Received from Alice:', msg)
-    decrypted_msg = cipher.decrypt(msg).decode().rstrip('0')
+    decrypted_msg = cipher.decrypt(msg)
     print('Decrypted message:', decrypted_msg)
-    json_data = json.loads(decrypted_msg)
-    n3_dec = json_data['dec_n3']
+    n3 = int.from_bytes(n3, byteorder=sys.byteorder)
+    n3_dec = int.from_bytes(decrypted_msg, byteorder=sys.byteorder)
+    print('N3:', n3)
+    print('N3 - 1:', n3_dec)
     if (n3_dec != n3 - 1):
         print('Received back wrong N3. Tampered with. Exiting')
         exit()

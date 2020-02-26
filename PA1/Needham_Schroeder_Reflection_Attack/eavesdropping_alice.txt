@@ -1,0 +1,30 @@
+ECB!
+STEP 1:
+Sending to KDC: {"nonce": 10861986092205308269, "requester": 1, "requesting": 2}
+
+
+STEP 2:
+Encrypted text received from KDC: b'3\xe7\x91\x06\x1aF\xdfK\xa4\x8c\x99.?0\x0b\xa5\xd1\xa1\xfb\xaak\xa7\xd3n\x9d\xb1\xdb\x97\xd8\x85\xda\x0e\xe2O\xe4!\x92\x85\x81\xf30\xbb\xe2\xbb\x8c\xaf&\xaa\xbf\xcd(\x05:\xe9<\x9at\xed\xf8@\xe6HG`u\xa0\x80\xacv{E"?\x1cS\x9e/\xcb\x00\xde\xdd/\x18\xda\x0c\x0c2\xfc3\xf6\xf4vZc\x00S-\xf81\xcea\xcfX\xf8\xfeDb\x11#r\x82n\xfa\x0b}0\xc50\xd2\xf9\xfab2\x99)\xb0\xb7i\xcceK\xf5\rl\xa2s\x88\xb97\xcc\xb6\xd7\xca\xa7*\xc0\x15\xae\x8b \xc1N\x9b+\xae\x17\x8aZ\xcc\xb8G\x92n\xf4\x94\x1d\xe2\xed'
+b'{"nonce": 10861986092205308269, "name": "Bob", "kab": "eCf7dTrN89wzcNShP2gslQ==\\n", "ticket": "A0Vtr8ktNd8TEOgQfLUgzNmKzEZI6XghTrPK6UshdXqh7M/oy5VQ1GWJlznyF7zO\\n"}     '
+Decrypted data received from KDC: {'nonce': 10861986092205308269, 'name': 'Bob', 'kab': 'eCf7dTrN89wzcNShP2gslQ==\n', 'ticket': 'A0Vtr8ktNd8TEOgQfLUgzNmKzEZI6XghTrPK6UshdXqh7M/oy5VQ1GWJlznyF7zO\n'}
+Received correct nonce!
+
+
+length: 65 8
+ticket: b'A0Vtr8ktNd8TEOgQfLUgzNmKzEZI6XghTrPK6UshdXqh7M/oy5VQ1GWJlznyF7zO\n'
+encrypted_n2: b'HI\t\x90\xcb\xf5\x1do'
+STEP 3:
+Created N2 nonce: 15242502838739154638
+Sending to Bob: b'A0Vtr8ktNd8TEOgQfLUgzNmKzEZI6XghTrPK6UshdXqh7M/oy5VQ1GWJlznyF7zO\nHI\t\x90\xcb\xf5\x1do'
+
+
+STEP 4:
+Received encrypted data from Bob: b'g\xfc\xc2\x91\rJ0\xd6\xbb\xa0z)T\x96W\x18'
+Decrypted data: b'\xcd6\xee\xd6\x92?\x88\xd3\x1f\xe0@O5\x01\x188'
+N2 - 1: b'\xcd6\xee\xd6\x92?\x88\xd3'
+N3: b'\x1f\xe0@O5\x01\x188'
+Got back correct N2!
+STEP 5:
+Sending back N3 - 1: b'\x1e\xe0@O5\x01\x188'
+Sending to bob encrypted data: b'\x85\xdau-\xf6%\x0f\xec'
+DONE! Using shared key: b"x'\xfbu:\xcd\xf3\xdc3p\xd4\xa1?h,\x95"

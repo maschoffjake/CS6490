@@ -1,0 +1,25 @@
+ECB!
+Bob is listening...
+STEP 3:
+Received from Alice: b'A0Vtr8ktNd8TEOgQfLUgzNmKzEZI6XghTrPK6UshdXqh7M/oy5VQ1GWJlznyF7zO\nHI\t\x90\xcb\xf5\x1do'
+Encrypted ticket received: b'A0Vtr8ktNd8TEOgQfLUgzNmKzEZI6XghTrPK6UshdXqh7M/oy5VQ1GWJlznyF7zO\n'
+Encrypted nonce N2 received: b'HI\t\x90\xcb\xf5\x1do'
+Decrpyted ticket: {'kab': 'eCf7dTrN89wzcNShP2gslQ==\n', 'name': 1}
+
+
+STEP 4:
+N2 encrypted: b'HI\t\x90\xcb\xf5\x1do'
+N2 decrypted: 15242502838739154638
+N2 - 1: b'\xcd6\xee\xd6\x92?\x88\xd3'
+Created N3: b'\x1f\xe0@O5\x01\x188'
+Decrypted values going to send: b'\xcd6\xee\xd6\x92?\x88\xd3\x1f\xe0@O5\x01\x188'
+Sending encrypted data to Alice: b'g\xfc\xc2\x91\rJ0\xd6\xbb\xa0z)T\x96W\x18'
+
+
+STEP 5:
+Received from Alice: b'\x85\xdau-\xf6%\x0f\xec'
+Decrypted message: b'\x1e\xe0@O5\x01\x188'
+N3: 4041981994039566367
+N3 - 1: 4041981994039566366
+Received correct N3!
+DONE. Using shared key with Alice: b"x'\xfbu:\xcd\xf3\xdc3p\xd4\xa1?h,\x95"

@@ -80,8 +80,9 @@ def main():
     print('\n')
 
     # STEP 3
-    data = {}
-    data['ticket'] = json_data['ticket']
+    # CANT USE JSON HERE! In order to execute the reflection attack
+    # Need to now send only as bytes
+    ticket = json_data['ticket'].encode('ascii')
     # Create a new nonce, encrypt it using kab
     n2 = rnd.read(8)
     kab = base64.decodebytes(json_data['kab'].encode('ascii'))
@@ -90,15 +91,18 @@ def main():
     else:
         kab_cipher = DES3.new(kab, DES3.MODE_ECB)
     encrypted_n2 = kab_cipher.encrypt(n2)
-    data['encrypted_n2'] = int.from_bytes(encrypted_n2, byteorder=sys.byteorder)
-    send_json = json.dumps(data)
+    print('length:', len(ticket), len(encrypted_n2))
+    print('ticket:', ticket)
+    print('encrypted_n2:', encrypted_n2)
+    send_bytes = b''.join([ticket, encrypted_n2])
     print('STEP 3:')
     print('Created N2 nonce:', int.from_bytes(n2, byteorder=sys.byteorder))
-    print('Sending to Bob:', send_json)
+    print('Sending to Bob:', send_bytes)
     print('\n')
-    s_bob.sendall(send_json.encode('utf-8'))
+    s_bob.sendall(send_bytes)
 
     # STEP 4
+    # CANT USE JSON HERE! In order to execute the reflection attack
     print('STEP 4:')
     data = s_bob.recv(MESSAGE_SIZE)
     print('Received encrypted data from Bob:', data)
@@ -107,12 +111,15 @@ def main():
         cipher = DES3.new(kab, DES3.MODE_CBC, iv)
     else:
         cipher = DES3.new(kab, DES3.MODE_ECB)
-    decrypted_data = cipher.decrypt(data).decode().rstrip('0')
+    decrypted_data = cipher.decrypt(data)
     print('Decrypted data:', decrypted_data)
-    json_data = json.loads(decrypted_data)
     # Check the nonce n2
-    n2_dec = json_data['dec_n2']
+    n2_dec = decrypted_data[0:8]
+    n3_bytes = decrypted_data[8:]
+    print('N2 - 1:', n2_dec)
+    print('N3:', n3_bytes)
     n2 = int.from_bytes(n2, byteorder=sys.byteorder)
+    n2_dec = int.from_bytes(n2_dec, byteorder=sys.byteorder)
     if (n2 - 1 == n2_dec):
         print('Got back correct N2!')
     else:
@@ -122,14 +129,12 @@ def main():
 
     # STEP 5
     print('STEP 5:')
-    n3_alpha = json_data['n3'] - 1
+    n3 = int.from_bytes(n3_bytes, byteorder=sys.byteorder)
+    n3_alpha = n3 - 1
+    n3_alpha = n3_alpha.to_bytes(8, byteorder=sys.byteorder)
     print('Sending back N3 - 1:', n3_alpha)
-    data = {}
-    data['dec_n3'] = n3_alpha
-    data_to_send = json.dumps(data)
-    while (len(data_to_send) % 8 != 0):
-        data_to_send += '0'
-    # Encrypt the JSON
+    data_to_send = n3_alpha
+    # Encrypt the bytes
     encrypted_data_to_send = cipher.encrypt(data_to_send)
     print('Sending to bob encrypted data:', encrypted_data_to_send)
     s_bob.sendall(encrypted_data_to_send)
