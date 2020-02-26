@@ -1,6 +1,5 @@
 #
-# Create the Alice client that is used in the extended needham-schroeder protocol
-#
+# Create the Alice node that is used in the Expanded Needham Schroder protocol
 
 import socket
 import sys
@@ -47,7 +46,7 @@ def main():
     # Receive the nonce encrypted by Bob, and send it to the KDC
     encrypt_nonce = s_bob.recv(MESSAGE_SIZE)
     print('STEP 2:')
-    print('Alice received from Bob:', encrypt_nonce)
+    print('Alice received encrypted nonce from Bob:', encrypt_nonce)
     print('\n')
     s_kdc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s_kdc.connect((HOST, PORT_KDC))
@@ -62,7 +61,7 @@ def main():
     data['requesting'] = 2  # Requesting is 2, since Alice is requesting Bob (2)
     data['encrypted_nonce'] = int.from_bytes(encrypt_nonce, byteorder=sys.byteorder)
     json_data = json.dumps(data)
-    print('STEP 3:')
+    print('STEP 3:') 
     print('Sending to KDC:', json_data)
     print('\n')
     s_kdc.sendall(json_data.encode('utf-8'))
@@ -103,6 +102,7 @@ def main():
     data['encrypted_n2'] = int.from_bytes(encrypted_n2, byteorder=sys.byteorder)
     send_json = json.dumps(data)
     print('STEP 5:')
+    print('Received Kab:', kab)
     print('Created N2 nonce:', int.from_bytes(n2, byteorder=sys.byteorder))
     print('Sending to Bob:', send_json)
     print('\n')
@@ -144,8 +144,6 @@ def main():
     print('Sending to bob encrypted data:', encrypted_data_to_send)
     s_bob.sendall(encrypted_data_to_send)
     print('DONE! Using shared key:', kab)
-    
-    
 
 if __name__ == "__main__":
     main()

@@ -1,3 +1,7 @@
+#
+# KDC node used in the Expanded Needham Schroder protocol
+#
+
 import argparse
 import json
 import socket
