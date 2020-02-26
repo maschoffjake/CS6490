@@ -89,6 +89,7 @@ def handle_auth(conn, address, cbc):
         exit()
     print('Received correct N3!')
     print('DONE. Using shared key with Alice:', kab)
+    print('\n')
 
 # Function used to start the KDC server
 # Once a connection is made, it creates a new thread
