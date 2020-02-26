@@ -91,9 +91,6 @@ def main():
     else:
         kab_cipher = DES3.new(kab, DES3.MODE_ECB)
     encrypted_n2 = kab_cipher.encrypt(n2)
-    print('length:', len(ticket), len(encrypted_n2))
-    print('ticket:', ticket)
-    print('encrypted_n2:', encrypted_n2)
     send_bytes = b''.join([ticket, encrypted_n2])
     print('STEP 3:')
     print('Created N2 nonce:', int.from_bytes(n2, byteorder=sys.byteorder))
@@ -125,6 +122,7 @@ def main():
     else:
         print('Got back wrong N2. Tampered with. Exiting')
         exit()
+    print('\n')
 
 
     # STEP 5
@@ -132,7 +130,7 @@ def main():
     n3 = int.from_bytes(n3_bytes, byteorder=sys.byteorder)
     n3_alpha = n3 - 1
     n3_alpha = n3_alpha.to_bytes(8, byteorder=sys.byteorder)
-    print('Sending back N3 - 1:', n3_alpha)
+    print('Created N3 - 1:', n3_alpha)
     data_to_send = n3_alpha
     # Encrypt the bytes
     encrypted_data_to_send = cipher.encrypt(data_to_send)
