@@ -48,6 +48,7 @@ def main():
 
     # Get back from this packet Kab {N4 - 1, N5}
     recv = s_bob_2.recv(MESSAGE_SIZE)
+    s_bob_2.close()
 
     # Take out Kab {N4 - 1} and close this connection
     n4_dec = recv[0:8]
