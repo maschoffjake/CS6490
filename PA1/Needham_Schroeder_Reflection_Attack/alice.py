@@ -32,6 +32,10 @@ def main():
                     help="use ECB secret key function instead of default (CBC)")
     args = parser.parse_args()
     cbc = not args.ecb
+    if cbc:
+        print('CBC!')
+    else:
+        print('ECB!')
 
     # STEP 1
     s_bob = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -65,7 +69,8 @@ def main():
         cipher_alice = DES3.new(ka, DES3.MODE_ECB)
     
     decrypted_text = cipher_alice.decrypt(data_from_kdc)
-    json_data = json.loads(decrypted_text.rstrip('0'))
+    print(decrypted_text)
+    json_data = json.loads(decrypted_text.rstrip())
     print('Decrypted data received from KDC:', json_data)
     if n1 == json_data['nonce']:
         print('Received correct nonce!')

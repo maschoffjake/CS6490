@@ -95,7 +95,10 @@ def main():
     # Create a new nonce, encrypt it using kab
     n2 = rnd.read(8)
     kab = base64.decodebytes(json_data['kab'].encode('ascii'))
-    kab_cipher = DES3.new(kab, DES3.MODE_CBC, iv)
+    if cbc:
+        kab_cipher = DES3.new(kab, DES3.MODE_CBC, iv)
+    else:
+        kab_cipher = DES3.new(kab, DES3.MODE_ECB)
     encrypted_n2 = kab_cipher.encrypt(n2)
     data['encrypted_n2'] = int.from_bytes(encrypted_n2, byteorder=sys.byteorder)
     send_json = json.dumps(data)
