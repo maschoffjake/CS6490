@@ -135,7 +135,7 @@ def begin_handshake():
     msg = s_bob.recv(MESSAGE_SIZE)
     print('STEP 2 server hello')
     print('Received from Bob:', msg)
-    cert_received = process_handshake_msg(msg,key)
+    cert_received = process_handshake_msg(msg)
     print('\n')
 
     # STEP 3 send encrypted nonce and certificate (if requested)
@@ -194,15 +194,61 @@ def begin_handshake():
     print('********************************************************************************************************************')
     print('\n')
 
+    # Now create a MAC of all the messages that have been sent and SERVER and CLIENT appended (keyed SHA-1)
+    digest = hashes.Hash(hashes.SHA1(), backend=default_backend())
+    digest.update(client_hello_msg)
+    digest.update(msg)
+    digest.update(client_key_exchange_and_cert_msg)
+    digest.update(encrypted_nonce_msg)
+    digest.update(master_secret)
+
+    # Create a copy for now, so we can check CLIENT MAC
+    digest_client = digest.copy()
+    digest_client.update(b'CLIENT')
+    mac_client = digest_client.finalize()
+
+    # Finish digest to send by appending SERVER
+    digest.update(b'SERVER')
+    mac_server = digest.finalize()
+
     # STEP 5 Receive MAC from server (keyed SHA-1 with SERVER appended)
     mac_msg = s_bob.recv(MESSAGE_SIZE)
-    
+    print('STEP 5 receive MAC from server')
+    print('Received MAC from bob:', mac_msg)
+    process_handshake_msg(mac_msg, expected_mac=mac_server)
+    print('\n')
+
+    # STEP 6 send client MAC to server
+    # Now create a certificate verify message
+    mac_length = len(mac_server)
+    client_mac_msg = bytearray([0x0f])                                                              # Certificate verify msg
+    client_mac_msg.extend(bytearray((mac_length).to_bytes(3, byteorder='big')))                     # Length
+    client_mac_msg.extend(bytearray(mac_client))                                                    # MAC value
+
+    # Add the length to the record header
+    length = len(client_mac_msg)
+    handshake_header_total = handshake_record_header + (length).to_bytes(2, byteorder='big')
+
+    total_mac_msg = handshake_header_total + client_mac_msg
+    print('STEP 6 send client MAC')
+    print('HEADER:', handshake_header_total)
+    print('MAC:', mac_client)
+    print('Sending to Bob:', total_mac_msg)
+    s_bob.sendall(total_mac_msg)
+    print('\n')
+
+    # DONE WITH HANDSHAKE! Create keys
+    print('\n')
+    print('***** DONE WITH HANDSHAKE! AUTHENTICATED *****')
+    print('\n')
+
+    # Create keys...
 
 #
 #   Used to process an incoming message. Check the overall header and make sure to read each of 
 #   the record messages contained within the header
 #
-def process_handshake_msg(msg,key):
+def process_handshake_msg(msg,key=None, expected_mac=None):
     # Flags used for returning nonce and cert
     return_cert = False
     return_nonce = False
@@ -245,6 +291,12 @@ def process_handshake_msg(msg,key):
             nonce_received = process_server_key_exchange(msg_to_proccess[4:], length, key)
             print('Received nonce (after unecnrypting):', nonce_received)
             return_nonce = True
+        elif type_of_msg == 15:     # certificate verify (hash verify)
+            if msg_to_proccess[4:length] != expected_mac:
+                print('BAD! Received incorrect MAC. Exiting')
+                exit(-1)
+            else:
+                print('Received corect server MAC!')
         else:
             print('BAD! Unknown msg type of', type_of_msg,  'Exiting')
             exit(-1)

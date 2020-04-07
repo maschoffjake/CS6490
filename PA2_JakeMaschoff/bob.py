@@ -92,7 +92,7 @@ def handle_handshake(conn, address, cbc):
     client_hello_msg = conn.recv(MESSAGE_SIZE)
     print('STEP 1 receive client_hello')
     print('Received from Alice:', client_hello_msg)
-    process_handshake_msg(client_hello_msg, key)
+    process_handshake_msg(client_hello_msg)
     print('Correct client_hello received')
     print('\n')
 
@@ -155,12 +155,8 @@ def handle_handshake(conn, address, cbc):
     server_key_exchange_msg.extend(bytearray((len(ciphertext)).to_bytes(3, byteorder='big')))        # Length
     server_key_exchange_msg.extend(bytearray(ciphertext))                                            # Ciphertext
 
-    # Now create a ServerDone message
-    server_done_msg = bytearray([0x0e])                                                             # Server hello done type
-    server_done_msg.extend(bytearray((0).to_bytes(3, byteorder='big')))                             # Length
-
     # Add the length to the record header
-    length = len(server_key_exchange_msg) + len(server_done_msg)
+    length = len(server_key_exchange_msg)
     handshake_header_total = handshake_record_header + (length).to_bytes(2, byteorder='big')
     
     print('STEP 4 send server key exchange and serer done msg')
@@ -168,8 +164,7 @@ def handle_handshake(conn, address, cbc):
     print('Nonce created:', nonce)
     print('Encrypted nonce:', ciphertext)
     print('Server key exchange msg:', server_key_exchange_msg)
-    print('Server done msg:', server_done_msg)
-    total_server_key_exchange_and_done_msg = handshake_header_total + server_key_exchange_msg + server_done_msg
+    total_server_key_exchange_and_done_msg = handshake_header_total + server_key_exchange_msg 
     print('Sending to Alice:', total_server_key_exchange_and_done_msg)
     conn.sendall(total_server_key_exchange_and_done_msg)
     print('\n')
@@ -179,7 +174,57 @@ def handle_handshake(conn, address, cbc):
     print('Master secret created:', master_secret)
     print('********************************************************************************************************************')
 
-    # Now create a MAC of all the messages that have been sent and SERVER appended
+    # Now create a MAC of all the messages that have been sent and SERVER and CLIENT appended (keyed SHA-1)
+    digest = hashes.Hash(hashes.SHA1(), backend=default_backend())
+    digest.update(client_hello_msg)
+    digest.update(total_msg)
+    digest.update(client_msg)
+    digest.update(total_server_key_exchange_and_done_msg)
+    digest.update(master_secret)
+
+    # Create a copy for now, so we can check CLIENT MAC
+    digest_client = digest.copy()
+    digest_client.update(b'CLIENT')
+    mac_client = digest_client.finalize()
+
+    # Finish digest to send by appending SERVER
+    digest.update(b'SERVER')
+    mac_server = digest.finalize()
+
+    # Now create a certificate verify message
+    mac_length = len(mac_server)
+    server_mac_msg = bytearray([0x0f])                                                              # Certificate verify msg
+    server_mac_msg.extend(bytearray((mac_length).to_bytes(3, byteorder='big')))                     # Length
+    server_mac_msg.extend(bytearray(mac_server))                                                    # MAC value
+
+    # Now create a ServerDone message
+    server_done_msg = bytearray([0x0e])                                                             # Server hello done type
+    server_done_msg.extend(bytearray((0).to_bytes(3, byteorder='big')))                             # Length
+
+    # Add the length to the record header
+    length = len(server_mac_msg)+ len(server_done_msg)
+    handshake_header_total = handshake_record_header + (length).to_bytes(2, byteorder='big')
+
+    # Send the MAC and server done since server is done sending messages
+    total_mac_msg = handshake_header_total + server_mac_msg + server_done_msg
+    print('STEP 5 Sending MAC hash using keyed SHA-1 of previous messages')
+    print('HEADER:', handshake_header_total)
+    print('MAC:', mac_server)
+    print('Server done msg:', server_done_msg)
+    print('Sending to Alice:', total_mac_msg)
+    conn.sendall(total_mac_msg)
+
+    # STEP 6 receive client MAC, check it
+    clientmac_msg = conn.recv(MESSAGE_SIZE)
+    process_handshake_msg(clientmac_msg, expected_mac=mac_client)
+
+    print('\n')
+
+    # DONE WITH HANDSHAKE! Create keys
+    print('\n')
+    print('***** DONE WITH HANDSHAKE! AUTHENTICATED *****')
+    print('\n')
+
 
 
 '''
@@ -228,7 +273,7 @@ def service_client_hello(msg, length):
 #   Used to process an incoming message. Check the overall header and make sure to read each of 
 #   the record messages contained within the header
 #
-def process_handshake_msg(msg, key):
+def process_handshake_msg(msg, key=None, expected_mac=None):
     # Flag used for returning values for specific messages
     return_cert_and_nonce = False
     # Check to make sure the heads are correct
