@@ -466,7 +466,7 @@ def handle_data_transfer(keys, s_bob):
         unpadded_data = unpadder.update(decrypted_val) + unpadder.finalize()
         file_data = unpadded_data[:length_of_data]
         hmac_val = unpadded_data[length_of_data:]
-        print('Received encrypted file data (truncated):', file_data[:20])
+        print('Received encrypted file data (truncated):', encrypted_vals[:20])
         print('Received unencrypted file data (truncated):', file_data[:20])
         print('Received HMAC:', hmac_val)
         print('Verifying HMAC...')
