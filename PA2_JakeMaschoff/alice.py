@@ -4,8 +4,6 @@
 
 import socket
 import sys
-import base64
-import argparse
 import numpy as np
 import random
 import datetime
@@ -62,13 +60,6 @@ def begin_handshake():
         backend=default_backend()
     )
 
-    with open("key-alice-" + str(datetime.datetime.utcnow()) +  ".pem", "wb") as f:
-     f.write(key.private_bytes(
-         encoding=serialization.Encoding.PEM,
-         format=serialization.PrivateFormat.TraditionalOpenSSL,
-         encryption_algorithm=serialization.BestAvailableEncryption(b"passphrase"),
-     ))
-
     # Create the cert
     # Various details about who we are. For a self-signed certificate the
     # subject and issuer are always the same.
@@ -98,10 +89,6 @@ def begin_handshake():
         critical=False,
     # Sign this cert with our RSA key we generated (self-signed)
     ).sign(key, hashes.SHA256(), default_backend())
-
-    # Write the cert to disk
-    with open("cert-alice-" + str(datetime.datetime.utcnow()) + ".pem", "wb") as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
 
     # STEP 1 send client_hello
     s_bob = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -412,13 +399,13 @@ def handle_data_transfer(keys, s_bob):
     hmac_recv = hmac.HMAC(keys['auth_recv'], hashes.SHA256(), backend=default_backend())
 
     # Sending first sequence
-    sequence_num = b'1'
+    sequence_num = 1
     record_data = requested_file
     length_of_record = len(record_data)
     total_record_header = data_transfer_record_header + (length_of_record).to_bytes(2, byteorder='big')
 
     # Calculate the HMAC
-    hmac_send.update(sequence_num)
+    hmac_send.update((sequence_num).to_bytes(1, byteorder='big'))
     hmac_send.update(total_record_header)
     hmac_send.update(record_data)
     hmac_val = hmac_send.finalize()
@@ -434,15 +421,22 @@ def handle_data_transfer(keys, s_bob):
     print('Unecrypted msg:', padded_data)
     print('Encrypted msg:', ct)
     print('Total msg being sent:', total_msg)
+    print('\n')
     s_bob.sendall(total_msg)
 
+    print('Receiving file now:')
     # Now receive the file from the server!
-    file = bytearray()
+    file_bytes = bytearray()
 
-    processing = True
     # Begin processing messages
-    while (processing):
+    while (True):
+        # Wait until a message come sin
         msg = s_bob.recv(MESSAGE_SIZE)
+        sequence_num += 1
+
+        # Must use a new unpadder each time
+        unpadder = pad.PKCS7(128).unpadder()
+
         # Check to make sure the headers are correct
         if msg[0] != 0x17:
             print('BAD! Record header is not application data type')
@@ -452,10 +446,47 @@ def handle_data_transfer(keys, s_bob):
                 print('BAD! Wrong version number. Expecting SSL v3')
                 exit(-1)
 
-        total_record_length = int.from_bytes(msg[3:5], byteorder='big')
+        length_of_data = int.from_bytes(msg[3:5], byteorder='big')
+        # If no data is contained, done receiving the file
+        if length_of_data == 0:
+            print('Done receiving file!')
+            break
 
         encrypted_vals = msg[5:]
 
+        # Decrypt the values, unpad, grab the hmac and data
+        encrypted_vals = msg[5:]
+        decryptor = cipher_decrypt.decryptor()
+        decrypted_val = decryptor.update(encrypted_vals) + decryptor.finalize()
+        unpadded_data = unpadder.update(decrypted_val) + unpadder.finalize()
+        file_data = unpadded_data[:length_of_data]
+        hmac_val = unpadded_data[length_of_data:]
+        print('Received encrypted file data (truncated):', file_data[:20])
+        print('Received unencrypted file data (truncated):', file_data[:20])
+        print('Received HMAC:', hmac_val)
+        print('Verifying HMAC...')
+
+        # Verify the data was not tampered with (add sequence number, record header, and record data)
+        # Create a new one each time since thats how the library works
+        hmac_recv = hmac.HMAC(keys['auth_recv'], hashes.SHA256(), backend=default_backend())
+        hmac_recv.update((sequence_num).to_bytes(1, byteorder='big'))
+        hmac_recv.update(msg[:5])
+        hmac_recv.update(decrypted_val[:length_of_data])
+        try:
+            hmac_recv.verify(hmac_val)
+            print('HMAC verification passed! Wasn\'t tampered with')
+            print('Correctly received seq', sequence_num, '\n')
+        except Exception:
+            print('HMAC verification failed! Exiting')
+            exit(-1)
+
+        # Add file bytes since they were not tampered with
+        file_bytes.extend(file_data)
+
+
+    f = open(requested_file.decode().split('.')[0] + '_received.txt', 'w+b')
+    f.write(file_bytes)
+    f.close()
 
 def main():
 

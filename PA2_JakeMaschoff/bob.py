@@ -1,13 +1,12 @@
 #
 # Bob node used in the Expanded Needham Schroder protocol
 #
-import argparse
 import socket
 import sys
 import threading
-import base64
 import datetime
 import random
+import time
 from Crypto import Random
 
 # Cryptography libraries used for generating certs
@@ -437,10 +436,10 @@ def handle_data_transfer(conn, keys):
     print('Verifying HMAC...')
 
     # Start sequence number to 1
-    sequence_num = b'1'
+    sequence_num = 1
 
     # Verify the data was not tampered with (add sequence number, record header, and record data)
-    hmac_recv.update(sequence_num)
+    hmac_recv.update((sequence_num).to_bytes(1, byteorder='big'))
     hmac_recv.update(msg[:5])
     hmac_recv.update(decrypted_val[:length_of_data])
     try:
@@ -450,14 +449,58 @@ def handle_data_transfer(conn, keys):
         print('HMAC verification failed! Exiting')
         exit(-1)
 
+    print('Beginning to send', filename)
+    print('\n')
+
     # How much data you should send with each packet at max (2^14)
     SSL_data_chunk_size = 16384
     # Going to transfer a frankenstein book
-    with open(filename, 'r') as f:
-        data = f.read(SSL_data_chunk_size)
+    with open(filename, 'r', newline='') as f:
+        data = f.read(SSL_data_chunk_size).encode()
         while data:
-            # print(data)
-            data = f.read(SSL_data_chunk_size)
+            # Must recreate the HMAC creator each time (how the library works)
+            hmac_send = hmac.HMAC(keys['auth_send'], hashes.SHA256(), backend=default_backend())
+            padder = pad.PKCS7(128).padder()
+
+            # Increment the sequence number
+            sequence_num += 1
+            length_of_record = len(data)
+            total_record_header = data_transfer_record_header + (length_of_record).to_bytes(2, byteorder='big')
+
+            # Calculate the HMAC
+            hmac_send.update((sequence_num).to_bytes(1, byteorder='big'))
+            hmac_send.update(total_record_header)
+            hmac_send.update(data)
+            hmac_val = hmac_send.finalize()
+
+            # Pad and encrypt the record data and HMAC
+            encryptor = cipher_encrypt.encryptor()
+            msg_to_pad = data + hmac_val
+            padded_data = padder.update(msg_to_pad) + padder.finalize()
+            ct = encryptor.update(padded_data) + encryptor.finalize()
+            total_msg = total_record_header + ct
+            print('Sending file fragment for sequence num', sequence_num)
+            print('HMAC', hmac_val)
+            print('Unecrypted msg (truncated):', padded_data[:20], '...')
+            print('Encrypted msg (truncated):', ct[:20], '...')
+            print('Total msg being sent (truncated):', total_msg[:20], '...')
+            print('\n')
+            conn.sendall(total_msg)
+
+            # Wait for client to process, otherwise unable to pick up entire messsages
+            time.sleep(.01)
+
+            # Try to read in more data
+            data = f.read(SSL_data_chunk_size).encode()
+    
+    # Send blank record data to let the client know it is done transferring
+    total_record_header = data_transfer_record_header + (0).to_bytes(2, byteorder='big')
+    print('Sending header with length 0 to let client know we are done sending')
+    print('Sent:', total_record_header)
+    conn.sendall(total_record_header)
+    print('\n')
+    print('Done sending file', filename)
+
 
 # Function used to start the KDC server
 # Once a connection is made, it creates a new thread
