@@ -8,7 +8,6 @@ import threading
 import base64
 import datetime
 import random
-from Crypto.Cipher import DES3
 from Crypto import Random
 
 # Cryptography libraries used for generating certs
@@ -16,9 +15,11 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
 from cryptography import x509
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, hmac, padding as pad
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 HOST = 'localhost'
 PORT = 5001
@@ -29,11 +30,11 @@ public_exponent_list = [3, 5, 17, 257, 65537]
 # Key size for RSA
 KEY_SIZE = 2048
 
-kb = b'DC8FA9EE9BA7FTTA'
-iv = b'\x81\xde\xa6\xf3u\x9d\x11\xdd'
+# Salt shared between the 2 nodes, assuming it is shared!
+shared_salt = b'\xe4\xebb\x94\xf3K\xe1\x80ND@\x08\xe97\\\x119\xaaK\xbfrn\xb9\tA\x13Q\xd5o\x85\xfa\x03\x10y@+(Q\xcb\x00+\xa2\xb8\xe4\x0f\xf2\x1b\x89\xe2\xcb\x03}\x8d\xfefv\x1a6\x0f\xad3-\x17\xdb2\x1c\xadx\xd64\xd7\xca.\xee\xa8\xab@*\xfdO\x0b\x9b\xc7\x0c\xbc\xa8!jN\xea?%\xfb\xde\xa8\xf5\x97\xcb\x16\x07\xd2\xc04*\x99\x8dA0\x15\x0c_\xe8\x99\xa2y\x93\xa8\t9<o\xdb\x94R\xc3~&\xd9'
 
-# Message blocks that are being sent between the nodes
-MESSAGE_SIZE = 2048
+# Message blocks that are being sent between the nodes (32KB)
+MESSAGE_SIZE = 32 * 1024
 
 # Function used to pass threads off to when new connections are made with bob
 # Handles all of the messages in the ENS protocol for a new connection
@@ -172,7 +173,7 @@ def handle_handshake(conn, address, cbc):
     master_secret = bytes(a ^ b for a, b in zip(nonce, nonce_received))
     print('********************************************************************************************************************')
     print('Master secret created:', master_secret)
-    print('********************************************************************************************************************')
+    print('********************************************************************************************************************\n')
 
     # Now create a MAC of all the messages that have been sent and SERVER and CLIENT appended (keyed SHA-1)
     digest = hashes.Hash(hashes.SHA1(), backend=default_backend())
@@ -225,6 +226,27 @@ def handle_handshake(conn, address, cbc):
     print('***** DONE WITH HANDSHAKE! AUTHENTICATED *****')
     print('\n')
 
+    # Create keys... using https://cryptography.io/en/latest/hazmat/primitives/key-derivation-functions/#
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=160,         # need to generate 4-keys (32-bytes each) and IV of 32-bytes
+        salt=shared_salt,
+        iterations=1000000, # recommended is 1mil
+        backend=default_backend()
+    )
+    keys_bytes = kdf.derive(master_secret)
+
+    # Create the keys associated with server
+    keys = {
+        'decrypt': keys_bytes[0:32],
+        'encrypt': keys_bytes[32:64],
+        'auth_recv': keys_bytes[64:96],
+        'auth_send': keys_bytes[96:128],
+        'iv': keys_bytes[128:]
+    }
+
+    # Now begin handling the data transfer phase
+    handle_data_transfer(conn, keys)
 
 
 '''
@@ -306,6 +328,12 @@ def process_handshake_msg(msg, key=None, expected_mac=None):
             print('Processing client key exchange')
             nonce_received = process_client_key_exchange(msg_to_proccess[4:], length, key=key)
             print('Received nonce (after unecnrypting):', nonce_received)
+        elif type_of_msg == 15:     # certificate verify (hash verify)
+            if msg_to_proccess[4:length+4] != expected_mac:
+                print('BAD! Received incorrect MAC. Exiting')
+                exit(-1)
+            else:
+                print('Received corect server MAC!')
         else:
             print('BAD! Unknown msg type of', type_of_msg,  'Exiting')
             exit(-1)
@@ -359,6 +387,78 @@ def process_certificate(msg, length):
         print(str(e))
         exit(-1)
 
+'''
+        Function to be used for when the ssl transaction has entered data transfer phase
+        Pass in the 4 keys to be used for the data transfer phase plus IV
+        This function is expecting the client (Alice) to send a request for a file she would like to download
+        This function will then supply the file encrypted
+'''
+def handle_data_transfer(conn, keys):
+    
+    # Create default header
+    data_transfer_record_header = bytearray([0x17, 0x03, 0x00])      # Application data record (0x17) and SSL v3 (ADD LENGTH AFTER KNOWING HOW LONG!)
+
+    # Padder and unpadder
+    padder = pad.PKCS7(128).padder()
+    unpadder = pad.PKCS7(128).unpadder()
+
+    # Create ciphers
+    cipher_decrypt = Cipher(algorithms.AES(keys['decrypt']), modes.CBC(keys['iv'][:16]), backend=default_backend())
+    cipher_encrypt = Cipher(algorithms.AES(keys['encrypt']), modes.CBC(keys['iv'][16:]), backend=default_backend())
+
+    # Create HMACs
+    hmac_send = hmac.HMAC(keys['auth_send'], hashes.SHA256(), backend=default_backend())
+    hmac_recv = hmac.HMAC(keys['auth_recv'], hashes.SHA256(), backend=default_backend())
+
+    # Wait for the client to send what file it wants to download
+    msg = conn.recv(MESSAGE_SIZE)
+    print('Bob received request:', msg)
+
+    # Check to make sure the headers are correct
+    if msg[0] != 0x17:
+        print('BAD! Record header is not application data type')
+
+    version_number = msg[1:3]
+    if version_number != b'\x03\x00':
+            print('BAD! Wrong version number. Expecting SSL v3')
+            exit(-1)
+
+    length_of_data = int.from_bytes(msg[3:5], byteorder='big')
+
+    # Decrypt the values, unpad, grab the hmac and data
+    encrypted_vals = msg[5:]
+    decryptor = cipher_decrypt.decryptor()
+    decrypted_val = decryptor.update(encrypted_vals) + decryptor.finalize()
+    unpadded_data = unpadder.update(decrypted_val) + unpadder.finalize()
+    filename = unpadded_data[:length_of_data].decode()
+    hmac_val = unpadded_data[length_of_data:]
+    print('Received filename:', filename)
+    print('Received HMAC:', hmac_val)
+    print('Verifying HMAC...')
+
+    # Start sequence number to 1
+    sequence_num = b'1'
+
+    # Verify the data was not tampered with (add sequence number, record header, and record data)
+    hmac_recv.update(sequence_num)
+    hmac_recv.update(msg[:5])
+    hmac_recv.update(decrypted_val[:length_of_data])
+    try:
+        hmac_recv.verify(hmac_val)
+        print('HMAC verification passed! Wasn\'t tampered with')
+    except Exception:
+        print('HMAC verification failed! Exiting')
+        exit(-1)
+
+    # How much data you should send with each packet at max (2^14)
+    SSL_data_chunk_size = 16384
+    # Going to transfer a frankenstein book
+    with open(filename, 'r') as f:
+        data = f.read(SSL_data_chunk_size)
+        while data:
+            # print(data)
+            data = f.read(SSL_data_chunk_size)
+
 # Function used to start the KDC server
 # Once a connection is made, it creates a new thread
 # and passes it off to a new function (handle_kdc)
@@ -375,6 +475,7 @@ def start_server(cbc=False):
         t.start()
 
 def main():
+
     # Start the server
     start_server(True)
 

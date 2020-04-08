@@ -14,20 +14,22 @@ from Crypto import Random
 # Cryptography libraries used for generating certs
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import serialization, hmac
 from cryptography import x509
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, padding as pad
 from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 # Declare the ports for communication
 HOST = 'localhost'
 PORT_BOB = 5001
 
-# Using a base msg size of 1KB
-MESSAGE_SIZE = 2048
+# Using a base msg size of 32KB
+MESSAGE_SIZE = 32 * 1024
 
-# Alice's secret key!
-ka = b'6CCD4EE1B2B37A8C'
+# Salt shared between the 2 nodes, assuming it is shared!
+shared_salt = b'\xe4\xebb\x94\xf3K\xe1\x80ND@\x08\xe97\\\x119\xaaK\xbfrn\xb9\tA\x13Q\xd5o\x85\xfa\x03\x10y@+(Q\xcb\x00+\xa2\xb8\xe4\x0f\xf2\x1b\x89\xe2\xcb\x03}\x8d\xfefv\x1a6\x0f\xad3-\x17\xdb2\x1c\xadx\xd64\xd7\xca.\xee\xa8\xab@*\xfdO\x0b\x9b\xc7\x0c\xbc\xa8!jN\xea?%\xfb\xde\xa8\xf5\x97\xcb\x16\x07\xd2\xc04*\x99\x8dA0\x15\x0c_\xe8\x99\xa2y\x93\xa8\t9<o\xdb\x94R\xc3~&\xd9'
 
 # Fermat primes (used with RSA)
 public_exponent_list = [3, 5, 17, 257, 65537]
@@ -35,12 +37,12 @@ public_exponent_list = [3, 5, 17, 257, 65537]
 # Key size
 KEY_SIZE = 2048
 
+# File to request from server
+requested_file = b'frankenstein_book.txt'
+
 # Flag for client to authenticate as well (by sending certificate)
 send_cert = True
 server_sending = True
-
-# Intialization vector used for the CBC cipher
-iv = b'\x81\xde\xa6\xf3u\x9d\x11\xdd'
 
 # Function used to start the KDC server
 # Once a connection is made, it creates a new thread
@@ -235,14 +237,32 @@ def begin_handshake():
     print('MAC:', mac_client)
     print('Sending to Bob:', total_mac_msg)
     s_bob.sendall(total_mac_msg)
-    print('\n')
 
     # DONE WITH HANDSHAKE! Create keys
     print('\n')
     print('***** DONE WITH HANDSHAKE! AUTHENTICATED *****')
     print('\n')
 
-    # Create keys...
+    # Create keys... using https://cryptography.io/en/latest/hazmat/primitives/key-derivation-functions/#
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=160,         # need to generate 4-keys (32-bytes each)
+        salt=shared_salt,
+        iterations=1000000, # recommended is 1mil
+        backend=default_backend()
+    )
+    keys_bytes = kdf.derive(master_secret)
+
+    # Create the keys associated with client
+    keys = {
+        'encrypt': keys_bytes[0:32],
+        'decrypt': keys_bytes[32:64],
+        'auth_send': keys_bytes[64:96],
+        'auth_recv': keys_bytes[96:128],
+        'iv': keys_bytes[128:]
+    }
+
+    return keys, s_bob
 
 #
 #   Used to process an incoming message. Check the overall header and make sure to read each of 
@@ -252,7 +272,7 @@ def process_handshake_msg(msg,key=None, expected_mac=None):
     # Flags used for returning nonce and cert
     return_cert = False
     return_nonce = False
-    # Check to make sure the heads are correct
+    # Check to make sure the headers are correct
     if msg[0] != 0x16:
         print('BAD! Record header is not handshake type')
 
@@ -292,7 +312,7 @@ def process_handshake_msg(msg,key=None, expected_mac=None):
             print('Received nonce (after unecnrypting):', nonce_received)
             return_nonce = True
         elif type_of_msg == 15:     # certificate verify (hash verify)
-            if msg_to_proccess[4:length] != expected_mac:
+            if msg_to_proccess[4:length+4] != expected_mac:
                 print('BAD! Received incorrect MAC. Exiting')
                 exit(-1)
             else:
@@ -370,11 +390,80 @@ def service_hello_server(msg):
     # All checks went well! Received correct server_hello
     print('Correct server_hello received')
 
+'''
+        Function to be used for when the ssl transaction has entered data transfer phase
+        Pass in the 4 keys to be used for the data transfer phase plus IV
+'''
+def handle_data_transfer(keys, s_bob):
+
+    # Create default header
+    data_transfer_record_header = bytearray([0x17, 0x03, 0x00])      # Application data record (0x17) and SSL v3 (ADD LENGTH AFTER KNOWING HOW LONG!)
+
+    # Padder and unpadder
+    padder = pad.PKCS7(128).padder()
+    unpadder = pad.PKCS7(128).unpadder()
+
+    # Create ciphers
+    cipher_encrypt = Cipher(algorithms.AES(keys['encrypt']), modes.CBC(keys['iv'][:16]), backend=default_backend())
+    cipher_decrypt = Cipher(algorithms.AES(keys['decrypt']), modes.CBC(keys['iv'][16:]), backend=default_backend())
+
+    # Create HMACs
+    hmac_send = hmac.HMAC(keys['auth_send'], hashes.SHA256(), backend=default_backend())
+    hmac_recv = hmac.HMAC(keys['auth_recv'], hashes.SHA256(), backend=default_backend())
+
+    # Sending first sequence
+    sequence_num = b'1'
+    record_data = requested_file
+    length_of_record = len(record_data)
+    total_record_header = data_transfer_record_header + (length_of_record).to_bytes(2, byteorder='big')
+
+    # Calculate the HMAC
+    hmac_send.update(sequence_num)
+    hmac_send.update(total_record_header)
+    hmac_send.update(record_data)
+    hmac_val = hmac_send.finalize()
+
+    # Pad and encrypt the record data and HMAC
+    encryptor = cipher_encrypt.encryptor()
+    msg_to_pad = record_data + hmac_val
+    padded_data = padder.update(msg_to_pad) + padder.finalize()
+    ct = encryptor.update(padded_data) + encryptor.finalize()
+    total_msg = total_record_header + ct
+    print('Sending request for file', requested_file.decode())
+    print('HMAC', hmac_val)
+    print('Unecrypted msg:', padded_data)
+    print('Encrypted msg:', ct)
+    print('Total msg being sent:', total_msg)
+    s_bob.sendall(total_msg)
+
+    # Now receive the file from the server!
+    file = bytearray()
+
+    processing = True
+    # Begin processing messages
+    while (processing):
+        msg = s_bob.recv(MESSAGE_SIZE)
+        # Check to make sure the headers are correct
+        if msg[0] != 0x17:
+            print('BAD! Record header is not application data type')
+
+        version_number = msg[1:3]
+        if version_number != b'\x03\x00':
+                print('BAD! Wrong version number. Expecting SSL v3')
+                exit(-1)
+
+        total_record_length = int.from_bytes(msg[3:5], byteorder='big')
+
+        encrypted_vals = msg[5:]
+
+
 def main():
 
-    # Begin the handshake phase with Bob
-    begin_handshake()
+    # Begin the handshake phase with Bob, get the keys after the handshake is complete
+    keys, s_bob = begin_handshake()
 
+    # Once the handshake is complete, start data transfer
+    handle_data_transfer(keys, s_bob)
 
 if __name__ == "__main__":
     main()
