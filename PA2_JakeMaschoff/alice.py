@@ -1,15 +1,18 @@
-#
-#
-#
+'''
+        Client node used in an SSL transaction (Alice)
+        Starts communication with the server node (Bob)
+        Performs a handshake, and then asks for a file that is contained on the server,
+        which the server will then send over the keys made through the SSL handshake
+'''
 
+# Sys libraries
 import socket
 import sys
 import numpy as np
 import random
 import datetime
-from Crypto import Random
 
-# Cryptography libraries used for generating certs
+# Cryptography libraries used for generating certs, padding, AES, KDF, HMAC, etc
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hmac
@@ -18,6 +21,8 @@ from cryptography.hazmat.primitives import hashes, padding as pad
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from Crypto import Random
+
 
 # Declare the ports for communication
 HOST = 'localhost'

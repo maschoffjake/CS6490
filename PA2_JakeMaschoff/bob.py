@@ -1,15 +1,19 @@
-#
-# Bob node used in the Expanded Needham Schroder protocol
-#
+'''
+        Server node used in an SSL transaction (Bob)
+        Waits for communication made from client (Alice)
+        Performs a handshake, and then provides a file that is asked for by the client,
+        whileist using the keys that were made during the SSL handshake
+'''
+
+# Sys libraries
 import socket
 import sys
 import threading
 import datetime
 import random
 import time
-from Crypto import Random
 
-# Cryptography libraries used for generating certs
+# Cryptography libraries used for generating certs, padding, AES, KDF, HMAC, etc
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
@@ -19,6 +23,7 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from Crypto import Random
 
 HOST = 'localhost'
 PORT = 5001
@@ -50,13 +55,6 @@ def handle_handshake(conn, address, cbc):
         key_size=KEY_SIZE,
         backend=default_backend()
     )
-
-    with open("key-bob-" + str(datetime.datetime.utcnow()) +  ".pem", "wb") as f:
-     f.write(key.private_bytes(
-         encoding=serialization.Encoding.PEM,
-         format=serialization.PrivateFormat.TraditionalOpenSSL,
-         encryption_algorithm=serialization.BestAvailableEncryption(b"passphrase"),
-     ))
 
     # Create the cert
     # Various details about who we are. For a self-signed certificate the
