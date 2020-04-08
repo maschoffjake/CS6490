@@ -1,0 +1,256 @@
+STEP 1 client hello:
+HEADER: bytearray(b'\x16\x03\x00\x00\x0c')
+Client hello message: bytearray(b'\x01\x00\x00\x08\x03\x00\x00\x00\x02\x00\xb7\x00')
+Alice sent to Bob: bytearray(b'\x16\x03\x00\x00\x0c\x01\x00\x00\x08\x03\x00\x00\x00\x02\x00\xb7\x00')
+
+
+STEP 2 server hello
+Received from Bob: b'\x16\x03\x00\x04\xd7\x02\x00\x00\x03\x03\x00\x00\x0b\x00\x04\xc8-----BEGIN CERTIFICATE-----\nMIIDXDCCAkSgAwIBAgIUd/4JljzkHQtJzUgTqw89jr4OCj0wDQYJKoZIhvcNAQEL\nBQAwWzELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFV0YWgxEjAQBgNVBAcMCVBhcmsg\nQ2l0eTEbMBkGA1UECgwSVW5pdmVyc2l0eSBvZiBVdGFoMQwwCgYDVQQDDANib2Iw\nHhcNMjAwNDA4MTgwMDUyWhcNMjAwNDA5MTgwMDUyWjBbMQswCQYDVQQGEwJVUzEN\nMAsGA1UECAwEVXRhaDESMBAGA1UEBwwJUGFyayBDaXR5MRswGQYDVQQKDBJVbml2\nZXJzaXR5IG9mIFV0YWgxDDAKBgNVBAMMA2JvYjCCASIwDQYJKoZIhvcNAQEBBQAD\nggEPADCCAQoCggEBAJY/gnRdex7E0hSyuK4l4vC6zVAkTQFJq4mVl+wVrDmxpzh1\naOWTvrUZdD2f/12lj7RYZMiweYvEhNq3m0aCmofcGWtri70NPCGeulVmD2hImdHo\nrezeMk1XYkVy6LvyU1s9v9gmNl6cgj+4lszHwP4ZlsOdM5H8I05+MuLzrrRubTMB\nSGjKE3yz3RrNUnOMVWJrPmOhXDB5fVl80t73s5fJg4ky01QLaNZDIk4rskvLKXGu\nA5SXNjyZ+dTWkGd8OVVnSg0NowBBrm+zoph3nSuh420qYaifki0v7D9kWbYqsYJc\n06dlKGVPfpnr0nQG8UbavcEOuHVqfSHC4vjo+E0CAwEAAaMYMBYwFAYDVR0RBA0w\nC4IJbG9jYWxob3N0MA0GCSqGSIb3DQEBCwUAA4IBAQAG34q+tEmon3kaOk8BjKXY\niYfxZe+qpUiWWviFCD7kgNt8OwcBvZgNco79TPw3wkqyuQ9yQtofk9lFwY7ZQAro\nP1cKVAXCatOdlVnxWDzvbX/Cp4KRJZqIIcjXI/R2rtdJI9CED/t0pUPaV7oV+1Qf\nJlyY/EwFm+oc4zPiGDRUbZWElCNbHUVDXbLN44PJZTJoSgem2lFWZiUk+qv2qdE4\nSV2LV0CAVL7KLAdVpUI8vrAh5LcnGHLbLbk1cR6m7wKSaxUd1gApxWAkb3z0SWVc\nDbOvVXaK5kb3w4+G62QHR2U9yCNRgn0v3G/Bc9wBygBxFJ3ibpE+hqvrFtoDhcQm\n-----END CERTIFICATE-----\n\r\x00\x00\x00'
+Processing server hello type msg
+Correct server_hello received
+Processing certificate type msg
+Loaded certificate correctly
+Processing certificate request type msg
+
+
+STEP 3 sending cert (if requested) and client key exchange:
+HEADER: bytearray(b'\x16\x03\x00\x05\xd5')
+Nonce created: b'\xe2A\xcdt\x81\x82\xdcb\xcax\x9f^wFIj\xaa\xb1]\xfd\r&6\x8dhV\x90\xa9@D\xf4\x95'
+Encrypted nonce: b'\x92"\xe3\x8e\xe1\x16\x16\xfd<\xac\xef\x92Lo\x05A\x0b\xec\xab\x0cP\xd2\x1a\xa2x\x05V\x1e)\x94W\x92Z\x03\x81r\x16\x89\xc9%\xa1x\x0b7X!S\x93\xf2\x13\xdf\xe2gz\xec\x1f\x12\xe4\x1aX\xc5\xc7\xd4\x12\xa4\xa5\x8f10\x9f\x19)D,$\xb1\xfe\xd3z\xb7[C\x0e\xf2\xa8*\x8a8\xa8\x8a\xaa\'#j\xf4!\x90Y\xd2\xaf\xc9\xf4\xb5Q\xaa\xa7\xf1\xa2f\xd8b\xe8\\\x88|\x1a\x10\xedh\xd4W+Z*`F!\x7f\xc1\xf2+\xfcj\x03\xad+\x0b\x8b\xc1BZ}\x1d\x95\x17r\xb2\xf5\xc8l\xe5\x02$\x19\xd4\ri\xdb\xad\x839\xa4\x81q\xb7\xcd\xc6\x18\x87/m\xd6\\\x06\xb5x\xaf\x8c\xa5\x8d:\xae\xe5\xf61\'\xeb"b[Q\xc7\xc4<(\xc13!\x13s\xf2\xf1\xc1Jo\xc14\x9c\x8d4\x1c\xf9?\xbdX\xd1\n\x88\x0b\t\x01\x97b\xcc\xe1\xbe*pC\xf35\x94\xbd\xf6\xe3\xc6\xa3\x9ai"\xde\xbc\xdf\xeb\xe5jsqx\xa3\xc95\x98\x02\xb1d'
+Client key exchange message: bytearray(b'\x01\x00\x00\x08\x03\x00\x00\x00\x02\x00\xb7\x00')
+Client cert message: bytearray(b'\x0b\x00\x04\xcd-----BEGIN CERTIFICATE-----\nMIIDXjCCAkagAwIBAgIUESl/Hqe3k6M/epcvItJc4ajo4awwDQYJKoZIhvcNAQEL\nBQAwXTELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFV0YWgxEjAQBgNVBAcMCVBhcmsg\nQ2l0eTEbMBkGA1UECgwSVW5pdmVyc2l0eSBvZiBVdGFoMQ4wDAYDVQQDDAVhbGlj\nZTAeFw0yMDA0MDgxODAwNTJaFw0yMDA0MDkxODAwNTJaMF0xCzAJBgNVBAYTAlVT\nMQ0wCwYDVQQIDARVdGFoMRIwEAYDVQQHDAlQYXJrIENpdHkxGzAZBgNVBAoMElVu\naXZlcnNpdHkgb2YgVXRhaDEOMAwGA1UEAwwFYWxpY2UwggEgMA0GCSqGSIb3DQEB\nAQUAA4IBDQAwggEIAoIBAQDK/bpCWsns22fBUmR0udHhrGyLgIHe1DhcnJQtKVwW\nkqWGghcpPPN0AMW4weWLFmcNk2w9CZP0bU2d4tPjnvX4xGtC+dXEOYyQUf5dm1Zu\nBAIwlALhVYe7DbcGZYOsEP7YrWv37BprH/THaWCOJLYeGg7qmdXpu7DY1qqOybxW\n9WoIHUD50epeOGvjmLw/DSKZCTqrYyTpUMPhg4oPjnnpcN4RzlOltNhvO7TBZt1g\nboO22W2+1Z60oCMSq8CF/pJmKGA7KDyjJPH+QRp37pOuhh2m8Lcfs4z4N9o4rBLj\nLhEmbdNlNhB0eZgJa4quAqBc5rDhnnTbsVUZgF/6n+fhAgERoxgwFjAUBgNVHREE\nDTALgglsb2NhbGhvc3QwDQYJKoZIhvcNAQELBQADggEBACeiKd9/hOyFpHq6Jpfy\n6GOd+lDPYyJ9UJtxnK8yRd9h72ct8jiJJldA6+a8z14PZCFn+z0yvnwdev1wE972\nAD+nTLsJoMkhjf9FA6hUD/rfqrEMmv/EsEq6RmTy9LWobvq5DP7O2McNk50mfJhj\nBES/zErUFHwSubZvMeSKzTxJIxNjmQ4fU3GCZn6eQlWSHZAgFzPBlqiDv3QK5CmU\nczvp6fkAxsw0T+m76RswqJ9iySmPl6k6/3wuAX3/2dyqB1K43InzIut99v0EByYQ\nZKHTuv3AfkGKBjmfjHPYPErJVvwkVYZph4YZKI0n6uPdLoyIdr2DLB9H8L+qfAjy\nQng=\n-----END CERTIFICATE-----\n')
+Alice sent to Bob: bytearray(b'\x16\x03\x00\x05\xd5\x10\x00\x01\x00\x92"\xe3\x8e\xe1\x16\x16\xfd<\xac\xef\x92Lo\x05A\x0b\xec\xab\x0cP\xd2\x1a\xa2x\x05V\x1e)\x94W\x92Z\x03\x81r\x16\x89\xc9%\xa1x\x0b7X!S\x93\xf2\x13\xdf\xe2gz\xec\x1f\x12\xe4\x1aX\xc5\xc7\xd4\x12\xa4\xa5\x8f10\x9f\x19)D,$\xb1\xfe\xd3z\xb7[C\x0e\xf2\xa8*\x8a8\xa8\x8a\xaa\'#j\xf4!\x90Y\xd2\xaf\xc9\xf4\xb5Q\xaa\xa7\xf1\xa2f\xd8b\xe8\\\x88|\x1a\x10\xedh\xd4W+Z*`F!\x7f\xc1\xf2+\xfcj\x03\xad+\x0b\x8b\xc1BZ}\x1d\x95\x17r\xb2\xf5\xc8l\xe5\x02$\x19\xd4\ri\xdb\xad\x839\xa4\x81q\xb7\xcd\xc6\x18\x87/m\xd6\\\x06\xb5x\xaf\x8c\xa5\x8d:\xae\xe5\xf61\'\xeb"b[Q\xc7\xc4<(\xc13!\x13s\xf2\xf1\xc1Jo\xc14\x9c\x8d4\x1c\xf9?\xbdX\xd1\n\x88\x0b\t\x01\x97b\xcc\xe1\xbe*pC\xf35\x94\xbd\xf6\xe3\xc6\xa3\x9ai"\xde\xbc\xdf\xeb\xe5jsqx\xa3\xc95\x98\x02\xb1d\x0b\x00\x04\xcd-----BEGIN CERTIFICATE-----\nMIIDXjCCAkagAwIBAgIUESl/Hqe3k6M/epcvItJc4ajo4awwDQYJKoZIhvcNAQEL\nBQAwXTELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFV0YWgxEjAQBgNVBAcMCVBhcmsg\nQ2l0eTEbMBkGA1UECgwSVW5pdmVyc2l0eSBvZiBVdGFoMQ4wDAYDVQQDDAVhbGlj\nZTAeFw0yMDA0MDgxODAwNTJaFw0yMDA0MDkxODAwNTJaMF0xCzAJBgNVBAYTAlVT\nMQ0wCwYDVQQIDARVdGFoMRIwEAYDVQQHDAlQYXJrIENpdHkxGzAZBgNVBAoMElVu\naXZlcnNpdHkgb2YgVXRhaDEOMAwGA1UEAwwFYWxpY2UwggEgMA0GCSqGSIb3DQEB\nAQUAA4IBDQAwggEIAoIBAQDK/bpCWsns22fBUmR0udHhrGyLgIHe1DhcnJQtKVwW\nkqWGghcpPPN0AMW4weWLFmcNk2w9CZP0bU2d4tPjnvX4xGtC+dXEOYyQUf5dm1Zu\nBAIwlALhVYe7DbcGZYOsEP7YrWv37BprH/THaWCOJLYeGg7qmdXpu7DY1qqOybxW\n9WoIHUD50epeOGvjmLw/DSKZCTqrYyTpUMPhg4oPjnnpcN4RzlOltNhvO7TBZt1g\nboO22W2+1Z60oCMSq8CF/pJmKGA7KDyjJPH+QRp37pOuhh2m8Lcfs4z4N9o4rBLj\nLhEmbdNlNhB0eZgJa4quAqBc5rDhnnTbsVUZgF/6n+fhAgERoxgwFjAUBgNVHREE\nDTALgglsb2NhbGhvc3QwDQYJKoZIhvcNAQELBQADggEBACeiKd9/hOyFpHq6Jpfy\n6GOd+lDPYyJ9UJtxnK8yRd9h72ct8jiJJldA6+a8z14PZCFn+z0yvnwdev1wE972\nAD+nTLsJoMkhjf9FA6hUD/rfqrEMmv/EsEq6RmTy9LWobvq5DP7O2McNk50mfJhj\nBES/zErUFHwSubZvMeSKzTxJIxNjmQ4fU3GCZn6eQlWSHZAgFzPBlqiDv3QK5CmU\nczvp6fkAxsw0T+m76RswqJ9iySmPl6k6/3wuAX3/2dyqB1K43InzIut99v0EByYQ\nZKHTuv3AfkGKBjmfjHPYPErJVvwkVYZph4YZKI0n6uPdLoyIdr2DLB9H8L+qfAjy\nQng=\n-----END CERTIFICATE-----\n')
+
+
+STEP 4 receive encrypted nonce
+Recieved from Bob: b'\x16\x03\x00\x01\x04\x0c\x00\x01\x00\x01w\xb2]\xbc\xeb\xf6\xc34\n\xb1\xaf\xa9\x17\xab\x9fH\xd3\x99\xadK\x85\x81\xc1\rtE\xd7\x19\xc06\xa5H\xd6o>\xb1\rM\xeaH\xe5I\x1dW\xab\xac\x9a\xab"\x06h\xc4\xede%te\xb7\x93k\xb0\x86\xb3\xb8\x99yq:\xb6$Z\x18\x13\x9a\xb9\x93n.\xb4#\xa7\xbeS\xe1\xab\xa3\x7fH\x1c\xbc+\xf3\xa6i\x02\x98\x96\xf8<\x9a\x9a\xafl\x15&%$T[\xf2\xa9K\x17\xc0\x90\xbe-\x8f6 /\x8c(\xc3\xc0\x87\x08:q\x8c\xc3\x91\xbc\xdd _\xd3\xa8O\x0f\xc4\x91\xcd\xa1\xb7\xee1\xfci\xeeY\x01:\xc9\x9er\xad\x93*\xe0]\x8a\\\xdc\\Q)c\xe9>\xf5\x16\xb3\x1a\x0c\x90STU\xe3ZR\x9a\xdaJm\x9ao\x02\xa1\xd5\xf9Hmk\xcb%\xdc\x8a\xb3\xaf=\xbfU\xa0\xbe\xff\xe3\xfd;E\x01m\xd6\xec\x0f\x9c\xd4BF0\xa7C_\xff\x07\xb3\xc4\xfeQQ\x15{\x886R\xf4(\xed\x97\xe0\x81\xf0\xf1\x96l\xa5\x8b\xd3H#i/\xa6l'
+Processing server key exchange
+Received nonce (after unecnrypting): b"\xe6#\xd3'\x1b\x12\xa0=\xb7n\t\xeb\x05\x85\x9dnB\x8e)2i\xb0.\x0c\x02\xdc 6f\x89(\x16"
+Decrypted nonce received: b"\xe6#\xd3'\x1b\x12\xa0=\xb7n\t\xeb\x05\x85\x9dnB\x8e)2i\xb0.\x0c\x02\xdc 6f\x89(\x16"
+
+
+********************************************************************************************************************
+Master secret created: b'\x04b\x1eS\x9a\x90|_}\x16\x96\xb5r\xc3\xd4\x04\xe8?t\xcfd\x96\x18\x81j\x8a\xb0\x9f&\xcd\xdc\x83'
+********************************************************************************************************************
+
+
+STEP 5 receive MAC from server
+Received MAC from bob: b'\x16\x03\x00\x00\x1c\x0f\x00\x00\x14\xce?M\xe5\xf0b\xe7\xfe\x1f\x85\xb9\xd4\xa3\xbaJn\x04\xca3w\x0e\x00\x00\x00'
+Received corect server MAC!
+Server done sending messages!
+
+
+STEP 6 send client MAC
+HEADER: bytearray(b'\x16\x03\x00\x00\x18')
+MAC: b'\xe4Hf\xd3\xfd\xc8\x8d\xe9u\xefre\xa3\xf9\x93!\xd9\xac\x93\xa0'
+Sending to Bob: bytearray(b'\x16\x03\x00\x00\x18\x0f\x00\x00\x14\xe4Hf\xd3\xfd\xc8\x8d\xe9u\xefre\xa3\xf9\x93!\xd9\xac\x93\xa0')
+
+
+***** DONE WITH HANDSHAKE! AUTHENTICATED *****
+
+
+Sending request for file frankenstein_book.txt
+HMAC b'\xba\x89\xf9\xcf\x85\xb6\x8a\x0f\xceT\x7f7E\xf3\xca\x01%\x96\x1dP\xb2;d\xb1t\xaa\x04;\x00?\xe8\x1e'
+Unecrypted msg: b'frankenstein_book.txt\xba\x89\xf9\xcf\x85\xb6\x8a\x0f\xceT\x7f7E\xf3\xca\x01%\x96\x1dP\xb2;d\xb1t\xaa\x04;\x00?\xe8\x1e\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b'
+Encrypted msg: b'\xa0\xe2\xf5!:\xe7\xb2\xc1\xdfa\xc1\xb0R\xde\xccmJ\xe3\xa9\xb6\xf7\x82\x8f\xb6\xabp\xae\x00\x07\xac\xfd\xee\xe5u\x84\xcd!*8\x99\x16\t\x99\x9f\xda\x97z\xfe\xbdJ\x168\xa5\xe9\xe9\xf8\x89tXx\x14\xe6\xddO'
+Total msg being sent: bytearray(b'\x17\x03\x00\x00\x15\xa0\xe2\xf5!:\xe7\xb2\xc1\xdfa\xc1\xb0R\xde\xccmJ\xe3\xa9\xb6\xf7\x82\x8f\xb6\xabp\xae\x00\x07\xac\xfd\xee\xe5u\x84\xcd!*8\x99\x16\t\x99\x9f\xda\x97z\xfe\xbdJ\x168\xa5\xe9\xe9\xf8\x89tXx\x14\xe6\xddO')
+
+
+Receiving file now:
+Received encrypted file data (truncated): b'\xef\xbb\xbf\r\nProject Gutenbe'
+Received unencrypted file data (truncated): b'\xef\xbb\xbf\r\nProject Gutenbe'
+Received HMAC: b'\xd1\xa7\x8d\xa7\xce\x9d\x9b\xf3\xae<\xad&;\xbc\xd5\xe8\xbc\x13\x18uP\x0b\x86t\xf3b\xf8\x91\xf5%8\x0c'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 2 
+
+Received encrypted file data (truncated): b'appear to dismay the'
+Received unencrypted file data (truncated): b'appear to dismay the'
+Received HMAC: b':\xe3\xf3>\x94L\xf3\xf6\xd9\xad\x01@\x02\x15tVqpm\xb2\xf6\xa9\xe5F6\x96\xba4\xc7\x80\xd8\x12'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 3 
+
+Received encrypted file data (truncated): b'\ntask, his full-tone'
+Received unencrypted file data (truncated): b'\ntask, his full-tone'
+Received HMAC: b'].\xc1\xcc}\x13\x8a\x15\x80\xc1_\xc6\xffs\xfbSU;\r\xc7\xccoE\xdet\xb4\x8dW0)\xf5\xe1'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 4 
+
+Received encrypted file data (truncated): b'cy of the\r\nweather o'
+Received unencrypted file data (truncated): b'cy of the\r\nweather o'
+Received HMAC: b'\xc7\xae\xccG\xf2\x9bC\xedk\x8b\xc3\xb0\x8a\x10\xc2 \t+\x03\xcbI\xa7\xa5\xb4w-\xac\x14\x08zG\xa2'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 5 
+
+Received encrypted file data (truncated): b'\r\nsteps of knowledge'
+Received unencrypted file data (truncated): b'\r\nsteps of knowledge'
+Received HMAC: b'\x88\xb8Tv\xfd\xf0\xeaV\xca]\xb4\x81\xb6\xd4\xbe\x9aKv\xaa\xfdJj\xd1^\xe8L\\\x1f\xad:\x87A'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 6 
+
+Received encrypted file data (truncated): b'midnight labours, wh'
+Received unencrypted file data (truncated): b'midnight labours, wh'
+Received HMAC: b'\xc6\x12\xa9!0\x12<\xc6\x06\xc1?q\xdc\xb1\xc4\\M\x81\xe2\xe0\xff\t\x03?\xf6\xa1\xa0\x80F\xbe\x1bb'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 7 
+
+Received encrypted file data (truncated): b'me\r\ncapable of obser'
+Received unencrypted file data (truncated): b'me\r\ncapable of obser'
+Received HMAC: b's\xf6a\xf6\xc1\xfa\xcas\xdag\xba\xcf$\xfd\xb8\xc3\x8e\xa7\xacp\x03\xec\xc7|\x84\xcd\xb3\x9c\xf0%\x1c\xd8'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 8 
+
+Received encrypted file data (truncated): b'ars ago, loved and b'
+Received unencrypted file data (truncated): b'ars ago, loved and b'
+Received HMAC: b'\xb7\x10\xe2Z<4\xc8\x1a;&Mss\xe3\xad0:cPWz\xcd\xed4\x96pa\x8a\x95E\xa06'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 9 
+
+Received encrypted file data (truncated): b'est; I enquired more'
+Received unencrypted file data (truncated): b'est; I enquired more'
+Received HMAC: b'-\xbc=\xdb\xe3\xd5\xc8\x08\xf4/\xc5\xa3\x05\xdaFf\xa9\x1d\x88\xd8\x87\xb5\x80\x0f2\xbc\xde\xd7\xf4hBv'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 10 
+
+Received encrypted file data (truncated): b' me of my last conso'
+Received unencrypted file data (truncated): b' me of my last conso'
+Received HMAC: b"\xdb\x98[\xc9U\x8cv\xbeR\x8d)\x0b\x98\x94\xb8\x07&\xf0\xe3\x8a'jT\xb7\xa9\xc5\xc7\x91/\xe1X\xf4"
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 11 
+
+Received encrypted file data (truncated): b'ains and precipices '
+Received unencrypted file data (truncated): b'ains and precipices '
+Received HMAC: b'\xeb\xf40\x8f\xeb\x17\xc6u3)\xbb\x92#\x91\xb9S\xcf[E\x04\xa3>\xf0RY\x0c\x16\xf9QP2\x86'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 12 
+
+Received encrypted file data (truncated): b'; and it was, indeed'
+Received unencrypted file data (truncated): b'; and it was, indeed'
+Received HMAC: b'\x9ae\x1c\xc3\xf3#\x9cO\x86}\'0\x85"Q\x81~2\xa1\x08?;\xa9\x8d\xd0\x1dB \x1f\xd1I/'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 13 
+
+Received encrypted file data (truncated): b't right to pursue, t'
+Received unencrypted file data (truncated): b't right to pursue, t'
+Received HMAC: b'\xb9\xd02\x7f6\xd8\xf8\xce\x1b\x16\xe2\x06\xd8S\xe8\xadD\xdbM\x9c^\xb6\xc2;\xd7kD\xf7\xa1\xffJ\xd0'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 14 
+
+Received encrypted file data (truncated): b' in a rich cadence, '
+Received unencrypted file data (truncated): b' in a rich cadence, '
+Received HMAC: b'\x9ePx\x9e<\x80_\xdf\x19\xcc]\xd7&\xa5\x88\x1d10#\xc0[\xb5]\x04\x04\x8d\x959\xe5\xe9\x18\x9d'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 15 
+
+Received encrypted file data (truncated): b'and that he should s'
+Received unencrypted file data (truncated): b'and that he should s'
+Received HMAC: b"w'\xa0\xba\t\xb7:~\x7f\xe1\xeaP\xa0\x11\xa6\xa4\x11\xfbC\xeb.~\xa3\xc4K\xfb(H\xb9)`\xd9"
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 16 
+
+Received encrypted file data (truncated): b'in the habits of dai'
+Received unencrypted file data (truncated): b'in the habits of dai'
+Received HMAC: b'\xa4+\x90\xb1\xe2s^\x96\x9e\xb9\xfa\xf1\xcd\x0c\x1er\xa5\x07\xf8c\xd4\xc6%\x9f\x88*\xc6\x82"\xd4b\x8e'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 17 
+
+Received encrypted file data (truncated): b' of\r\ninfancy.  Sudde'
+Received unencrypted file data (truncated): b' of\r\ninfancy.  Sudde'
+Received HMAC: b'+N\xa0\xeb\xa3\x8f\x93\x13x/\xde\xfa]\x16YlZ\x19\xdaU[\xcc\xca\xa4qZ\xf8\xdfz\xa1\x1aQ'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 18 
+
+Received encrypted file data (truncated): b'\non my return I met '
+Received unencrypted file data (truncated): b'\non my return I met '
+Received HMAC: b'\x99T\xa6\xcc\xdcs\xe8u\xe2W\xf2Z4\xfc\x16\xdb\x17k\x8eyv\xed#\x879\xaa\xce\xe3\xeel\xa3P'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 19 
+
+Received encrypted file data (truncated): b' my former self; he '
+Received unencrypted file data (truncated): b' my former self; he '
+Received HMAC: b'\\&\xc0\x17\x8a\xfc\xf3\xb9^\xf3\xf6\xd0\xc6x\xde\x90\xf1"C;\xbc\x125v4\xaa\x0e\xbc\x80\xd1\x11)'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 20 
+
+Received encrypted file data (truncated): b'efuge in wide\r\nand d'
+Received unencrypted file data (truncated): b'efuge in wide\r\nand d'
+Received HMAC: b'B\xd1}\xd7\xbf\x99\xc4\\(\xb9\x10\xa1\xc6\x84\xe2\x98CM0\x0c\xca\x87\x83\xac\xd0\xc2\xc5\x1dE\x8dZ\xcd'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 21 
+
+Received encrypted file data (truncated): b'hat no physical debi'
+Received unencrypted file data (truncated): b'hat no physical debi'
+Received HMAC: b'z\x08\xd3\xb0\xbde"\xc5\x8e\x82>.\x8f3\xbd\x04Z\xb9\xdf_E\xe2\xb7\xf0\x93=g\xeeP2\xb1L'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 22 
+
+Received encrypted file data (truncated): b'ng proved that I was'
+Received unencrypted file data (truncated): b'ng proved that I was'
+Received HMAC: b'f\xf2\xc1\xc4c\xd3\x11\xa29\xa6\xa2\xfek\xb54\x16\xe2!W[\xc8Q\xccu\xe9B\xfc\xc7+U\xbc\xe2'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 23 
+
+Received encrypted file data (truncated): b't sat motionless,\r\nb'
+Received unencrypted file data (truncated): b't sat motionless,\r\nb'
+Received HMAC: b'|\x01\x80\x97\xbaIH\xcf\xc7\x86b\x14\xbb\xe0\x01\xff\x10\xb3\x13\\\xcd+\xf7\xcf^Z\x14\xf9\x9c&\x03\xde'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 24 
+
+Received encrypted file data (truncated): b' that remain. Cursed'
+Received unencrypted file data (truncated): b' that remain. Cursed'
+Received HMAC: b'89\xef\xaf\xc1`\xfbZ\xb0\x051p\xedp:\x1am\x80\xd7 4\xcds\xb3\xc0U\x87W\xc2\xa7\xedg'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 25 
+
+Received encrypted file data (truncated): b'abitants concerning '
+Received unencrypted file data (truncated): b'abitants concerning '
+Received HMAC: b'\x83\x7f\xc2\xb6\x87\x19\xc3\xb6\x84T^\xeb\xd1\xd9\xaeL\xf1\xf2\x13\x0c\xb2\xf1[x\xce\xb7\xd0\xcc\xf3\x8f\x13\xdd'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 26 
+
+Received encrypted file data (truncated): b'be freed I would ins'
+Received unencrypted file data (truncated): b'be freed I would ins'
+Received HMAC: b'\x1b-\x86\x92I\x0e"r4{\x149\xf3\x9aY&\x9b@[\xc5\xee\x19\x9a\xf2\xf8\x8b_\x05\xfa\xf9\xb7\xce'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 27 
+
+Received encrypted file data (truncated): b'd to\r\ndeath his thro'
+Received unencrypted file data (truncated): b'd to\r\ndeath his thro'
+Received HMAC: b"W\x13\x9e\x0b\xd0\x1b'9)\xec\xb8+\xdf\xd2d@\x0e\x14\xf9=\xe0\xadQ\xd0\xdc\xb1\xb0\x05\x88q\x0e\xdf"
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 28 
+
+Received encrypted file data (truncated): b' MERCHANTIBILITY OR '
+Received unencrypted file data (truncated): b' MERCHANTIBILITY OR '
+Received HMAC: b'\xa5b\x1d>\xcf\xaa\xe7M\x7f\xc9\xaa\xd3j\xfb\x81fR-\x1aN\r\x91y\xed\xc0-\x13\xf7\x80E\x0e\xe6'
+Verifying HMAC...
+HMAC verification passed! Wasn't tampered with
+Correctly received seq 29 
+
+Done receiving file!
